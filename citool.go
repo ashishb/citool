@@ -87,19 +87,23 @@ func printTestStats(results []CircleCiBuildResult) {
 		return testNameAndDurationList[i].Duration > testNameAndDurationList[j].Duration
 	})
 
-	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
-	//noinspection GoUnhandledErrorResult
-	fmt.Fprintln(writer, "Test name\tAverage test duration")
-	//noinspection GoUnhandledErrorResult
-	fmt.Fprintln(writer, "----------\t--------------------")
-	for _, testNameAndDuration := range testNameAndDurationList {
-		// We don't need accuracy below one second.
-		averageDuration := testNameAndDuration.Duration.Round(time.Second)
-		//noinspection GoUnhandledErrorResult
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%v", testNameAndDuration.TestName, averageDuration))
-	}
-	//noinspection GoUnhandledErrorResult
-	writer.Flush()
+    printTestDuration(testNameAndDurationList)
+}
+
+func printTestDuration(testNameAndDurationList TestNameAndDurationPairList) {
+    writer := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
+    //noinspection GoUnhandledErrorResult
+    fmt.Fprintln(writer, "Test name\tAverage test duration")
+    //noinspection GoUnhandledErrorResult
+    fmt.Fprintln(writer, "----------\t--------------------")
+    for _, testNameAndDuration := range testNameAndDurationList {
+        // We don't need accuracy below one second.
+        averageDuration := testNameAndDuration.Duration.Round(time.Second)
+        //noinspection GoUnhandledErrorResult
+        fmt.Fprintln(writer, fmt.Sprintf("%s\t%v", testNameAndDuration.TestName, averageDuration))
+    }
+    //noinspection GoUnhandledErrorResult
+    writer.Flush()
 }
 
 func getTime(timeString string) time.Time {
