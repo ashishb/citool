@@ -7,37 +7,61 @@ import (
 	"strings"
 )
 
+var mode = flag.String("mode",
+	"analyze",
+	"Mode - \"download\" or \"analyze\"")
+
 var branchFilter = flag.String("only-branch",
 	"",
-	"Only consider test results from this branch")
+	"Only consider test results from this branch. Analyze mode only.")
 
 var testnameFilter = flag.String("only-testname",
 	"",
-	"Only consider test results for this testname")
+	"Only consider test results for this testname. Analyze mode only.")
 
 var testStatusFilter = flag.String("only-testresult",
 	"",
-	"Only consider test results with this completion status")
+	"Only consider test results with this completion status. Analyze mode only.")
 
 var inputFiles = flag.String("input-files",
 	"",
-	"Comma-separated list of files containing downloaded test results from CircleCI")
+	"Comma-separated list of files containing downloaded test results from CircleCI. Analyze mode only.")
 
-const debug = true
+var circleCiToken = flag.String("circle-token",
+	"",
+	"Circle CI access token. Download mode only.")
+
+var downloadStartOffset = flag.Int("offset",
+	0,
+	"Circle CI build results download start offset")
+
+var downloadLimit = flag.Int("limit",
+	0,
+	"Circle CI build results download limit")
+
+const debugMode = true
 
 func main() {
 	flag.Parse()
 
-	files := strings.Split(*inputFiles, ",")
-	testResults := getCircleCiBuildResults(&files)
-	filterData(&testResults)
-	PrintTestStats(testResults)
+	if *mode == "analyze" {
+		files := strings.Split(*inputFiles, ",")
+		// Treat non-positional args as input files as well
+		files = append(files, flag.Args()...)
+		testResults := getCircleCiBuildResults(&files)
+		filterData(&testResults)
+		PrintTestStats(testResults)
+	} else if *mode == "download" {
+		DownloadCircleCIBuildResults(*circleCiToken, *downloadStartOffset, *downloadLimit)
+	} else {
+		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))
+	}
 }
 
 func getCircleCiBuildResults(files *[]string) []CircleCiBuildResult {
 	data := make([]CircleCiBuildResult, 0)
 	for _, file := range *files {
-		logDebug("Input file: " + file)
+		LogDebug("Input file: " + file)
 		// Ignore empty file names
 		if len(file) == 0 {
 			continue
@@ -50,13 +74,13 @@ func getCircleCiBuildResults(files *[]string) []CircleCiBuildResult {
 
 func filterData(results *[]CircleCiBuildResult) {
 	if len(*branchFilter) > 0 {
-		logDebug("Filtering on branch: " + *branchFilter)
+		LogDebug("Filtering on branch: " + *branchFilter)
 	}
 	if len(*testnameFilter) > 0 {
-		logDebug("Filtering on test name: " + *testnameFilter)
+		LogDebug("Filtering on test name: " + *testnameFilter)
 	}
 	if len(*testStatusFilter) > 0 {
-		logDebug("Filtering on test result: " + *testStatusFilter)
+		LogDebug("Filtering on test result: " + *testStatusFilter)
 	}
 	filter.ChooseInPlace(results, filterRule)
 }
@@ -80,17 +104,8 @@ func filterRule(result CircleCiBuildResult) bool {
 	return true
 }
 
-//func filterByBranchName(results []CircleCiBuildResult, branchName string) []CircleCiBuildResult {
-//	newResults := make([]CircleCiBuildResult, 0)
-//	for _, result := range results {
-//		if result.Branch == branchName {
-//
-//		}
-//	}
-//}
-
-func logDebug(msg string) {
-	if !debug {
+func LogDebug(msg string) {
+	if !debugMode {
 		return
 	}
 	fmt.Println(msg)
