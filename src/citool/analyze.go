@@ -3,6 +3,7 @@ package citool
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/guptarohit/asciigraph"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -80,9 +81,11 @@ func PrintTestStats(results []CircleCiBuildResult) {
 		values = append(values, v)
 	}
 
+	printTestSuccessRate(values)
+	fmt.Println("")
 	printTestDuration(values)
 	fmt.Println("")
-	printTestSuccessRate(values)
+	printTimeSeriesData(results)
 }
 
 func printTestDuration(aggregateTestInfo []*AggregateTestInfo) {
@@ -133,10 +136,48 @@ func printTestSuccessRate(aggregateTestInfo []*AggregateTestInfo) {
 	writer.Flush()
 }
 
+type StartTimeAndDurationPair struct {
+	StartTime time.Time     // in what units?
+	Duration  time.Duration // in nanoseconds
+}
+
+func printTimeSeriesData(results []CircleCiBuildResult) {
+	testDurationsInSeconds := make(map[string][]StartTimeAndDurationPair, 0)
+	for _, result := range results {
+		// Only consider successful jobs to avoid skew due to failed job which might fail early on.
+		if result.Status != TestStatusSuccess {
+			continue
+		}
+		testName := result.Workflows.JobName
+		startTime := result.StartTime
+		duration := getTestDuration(result)
+		startTimeAndDurationPair := StartTimeAndDurationPair{
+			StartTime: getTime(startTime),
+			Duration:  duration}
+		testDurationsInSeconds[testName] = append(
+			testDurationsInSeconds[testName], startTimeAndDurationPair)
+	}
+	for key, value := range testDurationsInSeconds {
+		// Sort
+		sort.Slice(value, func(i, j int) bool {
+			// chronological order
+			return value[i].StartTime.Sub(value[j].StartTime).Seconds() < 0
+		})
+		durations := make([]float64, len(value))
+		for i, value := range value {
+			durations[i] = value.Duration.Seconds()
+		}
+		fmt.Printf("\nTest name: %s (%d data points)\n\n", key, len(durations))
+		graph := asciigraph.Plot(durations,
+			asciigraph.Height(10), asciigraph.Width(100))
+		fmt.Println(graph)
+	}
+}
+
 func getTime(timeString string) time.Time {
 	parsedTime, err := time.Parse(time.RFC3339Nano, timeString)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to parse parsedTime \"%v\", error: %v", timeString, err))
+		panic(fmt.Sprintf("Failed to parse time \"%v\", error: %v", timeString, err))
 	}
 	return parsedTime
 }
