@@ -87,7 +87,7 @@ func main() {
 			Start:           *downloadStartOffset,
 			Limit:           *downloadLimit,
 			DownloadDirPath: *downloadDirPath,
-			TestStatus:     testStatusType}
+			TestStatus:      testStatusType}
 		citool.DownloadCircleCIBuildResults(downloadParams)
 	} else {
 		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))
