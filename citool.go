@@ -11,15 +11,11 @@ var mode = flag.String("mode",
 	"analyze",
 	"Mode - \"download\" or \"analyze\"")
 
-var branchFilter = flag.String("only-branch",
-	"",
-	"Only consider test results from this branch. Analyze mode only.")
-
-var testnameFilter = flag.String("only-testname",
+var testname = flag.String("testname",
 	"",
 	"Only consider test results for this testname. Analyze mode only.")
 
-var testStatusFilter = flag.String("only-testresult",
+var testStatus = flag.String("testresult",
 	"",
 	"Only consider test results with this completion status. Analyze mode only.")
 
@@ -39,6 +35,23 @@ var downloadLimit = flag.Int("limit",
 	0,
 	"Circle CI build results download limit")
 
+var vcsType = flag.String("vcsType",
+	"github",
+	"Name of the VCS system - See https://circleci.com/docs/api/#version-control-systems-vcs-type. Download mode only.")
+
+var username = flag.String("username",
+	"",
+	"Optional username to filter downloads/analysis on",
+)
+
+var repositoryName = flag.String("reponame",
+	"",
+	"Optional repository name to filter downloads/analysis on")
+
+var branchName = flag.String("branch",
+	"",
+	"Optional branch name to filter download/analysis on")
+
 const debugMode = true
 
 func main() {
@@ -52,7 +65,15 @@ func main() {
 		filterData(&testResults)
 		PrintTestStats(testResults)
 	} else if *mode == "download" {
-		DownloadCircleCIBuildResults(*circleCiToken, *downloadStartOffset, *downloadLimit)
+		downloadParams := DownloadParams{
+			CircleToken:    circleCiToken,
+			VcsType:        vcsType,
+			Username:       username,
+			RepositoryName: repositoryName,
+			BranchName:     branchName,
+			Start:          *downloadStartOffset,
+			Limit:          *downloadLimit}
+		DownloadCircleCIBuildResults(downloadParams)
 	} else {
 		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))
 	}
@@ -73,31 +94,47 @@ func getCircleCiBuildResults(files *[]string) []CircleCiBuildResult {
 }
 
 func filterData(results *[]CircleCiBuildResult) {
-	if len(*branchFilter) > 0 {
-		LogDebug("Filtering on branch: " + *branchFilter)
+	if !IsEmpty(username) {
+		LogDebug("Filtering on username: " + *username)
 	}
-	if len(*testnameFilter) > 0 {
-		LogDebug("Filtering on test name: " + *testnameFilter)
+	if !IsEmpty(repositoryName) {
+		LogDebug("Filtering on repository name: " + *repositoryName)
 	}
-	if len(*testStatusFilter) > 0 {
-		LogDebug("Filtering on test result: " + *testStatusFilter)
+	if !IsEmpty(branchName) {
+		LogDebug("Filtering on branch: " + *branchName)
+	}
+	if !IsEmpty(testname) {
+		LogDebug("Filtering on test name: " + *testname)
+	}
+	if !IsEmpty(testStatus) {
+		LogDebug("Filtering on test result: " + *testStatus)
 	}
 	filter.ChooseInPlace(results, filterRule)
 }
 
 func filterRule(result CircleCiBuildResult) bool {
-	if len(*branchFilter) > 0 {
-		if result.Branch != *branchFilter {
+	if !IsEmpty(username) {
+		if result.Username != *username {
 			return false
 		}
 	}
-	if len(*testnameFilter) > 0 {
-		if result.Workflows.JobName != *testnameFilter {
+	if !IsEmpty(repositoryName) {
+		if result.Reponame != *repositoryName {
 			return false
 		}
 	}
-	if len(*testStatusFilter) > 0 {
-		if result.Status != *testStatusFilter {
+	if !IsEmpty(branchName) {
+		if result.Branch != *branchName {
+			return false
+		}
+	}
+	if !IsEmpty(testname) {
+		if result.Workflows.JobName != *testname {
+			return false
+		}
+	}
+	if !IsEmpty(testStatus) {
+		if result.Status != *testStatus {
 			return false
 		}
 	}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -11,43 +13,83 @@ import (
 const maxDownloadCircleCiLimit = 100
 const maxFetchRetryCount = 5
 
-func DownloadCircleCIBuildResults(circleToken string, start int, limit int) {
-	validate(circleToken, start, limit)
+type DownloadParams struct {
+	CircleToken    *string
+	VcsType        *string
+	Username       *string
+	RepositoryName *string
+	BranchName     *string
+	Start          int
+	Limit          int
+}
 
-	end := start + limit - 1
+func DownloadCircleCIBuildResults(params DownloadParams) {
+	validate(params)
+
+	start := params.Start
+	end := start + params.Limit - 1
 
 	for start <= end {
 		numToDownload := end - start + 1
 		if numToDownload > maxDownloadCircleCiLimit {
 			numToDownload = maxDownloadCircleCiLimit
 		}
+		tmpDownloadParams := params
+		tmpDownloadParams.Start = start
+		tmpDownloadParams.Limit = numToDownload
 		LogDebug(fmt.Sprintf("Downloading from %d to %d (both inclusive)", start, start+numToDownload-1))
-		downloadCircleCIBuildResults(circleToken, start, numToDownload)
+		downloadCircleCIBuildResults(tmpDownloadParams)
 		start += maxDownloadCircleCiLimit
 	}
 	LogDebug("Downloading finished")
 }
 
-func validate(circleToken string, start int, limit int) {
+func validate(params DownloadParams) {
 	// Validate
-	if len(circleToken) == 0 {
+	if IsEmpty(params.CircleToken) {
 		panic("Circle CI token is empty")
 	}
-	if start < 0 {
-		panic(fmt.Sprintf("start offset cannot be negative, it is %d", start))
+	if IsEmpty(params.VcsType) {
+		panic("VCS name cannot be empty")
 	}
-	if limit <= 0 {
-		panic(fmt.Sprintf("limit must be > 0, it is %d", limit))
+	userNameProvided := !IsEmpty(params.Username)
+	repositoryNameProvided := !IsEmpty(params.RepositoryName)
+	if userNameProvided != repositoryNameProvided {
+		panic(
+			fmt.Sprintf("Only one of the username(\"%s\") or respository name(\"%s\") is provided",
+				*params.Username,
+				*params.RepositoryName))
+	}
+	branchNameProvided := !IsEmpty(params.BranchName)
+	if branchNameProvided {
+		if !userNameProvided || !repositoryNameProvided {
+			panic(fmt.Sprintf("branchname(\"%s\") cannot be provided without username or respositry name", *branchName))
+		}
+	}
+	if params.Start < 0 {
+		panic(fmt.Sprintf("start offset cannot be negative, it is %d", params.Start))
+	}
+	if params.Limit <= 0 {
+		panic(fmt.Sprintf("limit must be > 0, it is %d", params.Limit))
 	}
 }
 
-func downloadCircleCIBuildResults(circleToken string, start int, limit int) {
-	url := constructUrl(circleToken, start, limit)
-	data, err := getBody(url)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to download from %s, error: %s", url, err))
+func IsEmpty(value *string) bool {
+	return value == nil || len(*value) == 0
+}
+
+func downloadCircleCIBuildResults(params DownloadParams) {
+	var downloadUrl *url.URL
+	if IsEmpty(params.Username) {
+		downloadUrl = constructDownloadUrlForAllProjects(params)
+	} else {
+		downloadUrl = constructDownloadUrlForASpecificProject(params)
 	}
-	outputFilename := getOutputFilename(start, limit)
+	data, err := getBody(*downloadUrl)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to download from %s, error: %s", downloadUrl, err))
+	}
+	outputFilename := getOutputFilename(params.Start, params.Limit)
 	err2 := writeToFile(outputFilename, data)
 	if err2 == nil {
 		LogDebug(fmt.Sprintf("Write %s", outputFilename))
@@ -56,16 +98,46 @@ func downloadCircleCIBuildResults(circleToken string, start int, limit int) {
 	}
 }
 
-func constructUrl(circleToken string, start int, limit int) string {
-	return fmt.Sprintf("https://circleci.com/api/v1.1/recent-builds?"+
+// https://circleci.com/docs/api/#recent-builds-across-all-projects
+func constructDownloadUrlForAllProjects(params DownloadParams) *url.URL {
+	downloadUrlString := fmt.Sprintf("https://circleci.com/api/v1.1/recent-builds?"+
 		"offset=%d&"+
 		"limit=%d&"+
 		"shallow=true&"+
 		"filter=completed&"+
 		"circle-token=%s",
-		start,
-		limit,
-		circleToken)
+		params.Start,
+		params.Limit,
+		*params.CircleToken)
+	downloadUrl, err := url.Parse(downloadUrlString)
+	if err != nil {
+		panic("Failed parse url " + downloadUrlString)
+	}
+	return downloadUrl
+}
+
+// https://circleci.com/docs/api/#recent-builds-for-a-single-project
+func constructDownloadUrlForASpecificProject(params DownloadParams) *url.URL {
+	baseUrl := fmt.Sprintf(
+		"https://circleci.com/api/v1.1/project/%s/%s/%s",
+		url.PathEscape(*params.VcsType),
+		url.PathEscape(*params.Username),
+		url.PathEscape(*params.RepositoryName))
+	if len(*params.BranchName) > 0 {
+		baseUrl = fmt.Sprintf("%s/tree/%s", baseUrl, url.PathEscape(*params.BranchName))
+	}
+	v := url.Values{}
+	v.Set("circle-token", *params.CircleToken)
+	v.Set("offset", strconv.Itoa(params.Start))
+	v.Set("limit", strconv.Itoa(params.Limit))
+	v.Set("shallow", "true")
+	queryString := v.Encode()
+	downloadUrlString := fmt.Sprintf("%s?%s", baseUrl, queryString)
+	downloadUrl, err := url.Parse(downloadUrlString)
+	if err != nil {
+		panic("Failed parse url " + downloadUrlString)
+	}
+	return downloadUrl
 }
 
 func writeToFile(filename string, contents []byte) error {
@@ -77,28 +149,32 @@ func getOutputFilename(start int, limit int) string {
 	return fmt.Sprintf("./data/from-%d-to-%d.json", start, start+limit-1)
 }
 
-func getBody(url string) ([]byte, error) {
+func getBody(url url.URL) ([]byte, error) {
+	urlString := url.String()
 	var err error
 	retryCount := 0
 	for retryCount < maxFetchRetryCount {
 		retryCount++
 		time.Sleep(time.Duration((retryCount - 1) * 1000 * 1000 * 1000))
 		client := &http.Client{}
-		request, err1 := http.NewRequest("GET", url, nil)
+		request, err1 := http.NewRequest("GET", url.String(), nil)
 		if err1 != nil {
-			panic(fmt.Sprintf("Failed to create get request \"%s\"\n", url))
+			panic(fmt.Sprintf("Failed to create get request \"%s\"\n", urlString))
 		}
 		// Or else the response is in some weird format.
 		request.Header.Set("Accept", "application/json")
 		response, err2 := client.Do(request)
 		if err2 != nil {
-			fmt.Printf("Failed to fetch on %d try: %s\n", retryCount, url)
+			fmt.Printf("Failed to fetch on %d try: url \"%s\"\n", retryCount, urlString)
 			err = err2
 			continue
 		}
+		if response.StatusCode != 200 {
+			panic(fmt.Sprintf("Failed to fetch %s, error: %s\n", urlString, response.Status))
+		}
 		bodyBytes, err3 := ioutil.ReadAll(response.Body)
 		if err3 != nil {
-			fmt.Printf("Failed to fetch on %d try: %s\n", retryCount, url)
+			fmt.Printf("Failed to fetch on %d try: %s\n", retryCount, urlString)
 			err = err3
 			continue
 		}
