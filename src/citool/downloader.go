@@ -24,7 +24,7 @@ type DownloadParams struct {
 	Start           int
 	Limit           int
 	DownloadDirPath string
-	TestStatus      *TestStatusTypes
+	TestStatus      *TestStatusFilterTypes
 }
 
 func DownloadCircleCIBuildResults(params DownloadParams) {

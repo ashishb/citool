@@ -73,9 +73,9 @@ func main() {
 		filterParams.FilterData(&testResults)
 		citool.PrintTestStats(testResults)
 	} else if *mode == "download" {
-		var testStatusType *citool.TestStatusTypes = nil
+		var testStatusType *citool.TestStatusFilterTypes = nil
 		if !citool.IsEmpty(testStatus) {
-			tmp := citool.TestStatusTypes(citool.GetTestStatusOrFail(*testStatus))
+			tmp := citool.TestStatusFilterTypes(citool.GetTestStatusFilterOrFail(*testStatus))
 			testStatusType = &tmp
 		}
 		downloadParams := citool.DownloadParams{

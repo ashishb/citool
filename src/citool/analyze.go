@@ -15,16 +15,14 @@ type CircleCiBuildWorkflow struct {
 }
 
 type CircleCiBuildResult struct {
-	Username    string `json:"username"`
-	Reponame    string `json:"reponame"`
-	Branch      string `json:"branch"`
-	BuildNumber int    `json:"build_num"`
-	// :retried, :canceled, :infrastructure_fail, :timedout, :not_run, :running,
-	// :failed, :queued, :scheduled, :not_running, :no_tests, :fixed, :success
-	Status    string                `json:"status"`
-	EndTime   string                `json:"stop_time"`
-	StartTime string                `json:"start_time"`
-	Workflows CircleCiBuildWorkflow `json:"workflows"`
+	Username    string                `json:"username"`
+	Reponame    string                `json:"reponame"`
+	Branch      string                `json:"branch"`
+	BuildNumber int                   `json:"build_num"`
+	Status      TestStatusType        `json:"status"`
+	EndTime     string                `json:"stop_time"`
+	StartTime   string                `json:"start_time"`
+	Workflows   CircleCiBuildWorkflow `json:"workflows"`
 }
 
 func GetJson(filename string) []CircleCiBuildResult {
@@ -68,9 +66,9 @@ func PrintTestStats(results []CircleCiBuildResult) {
 		existingAggregateTestInfo.CumulativeDuration += duration
 		aggregateTestInfo[testName] = existingAggregateTestInfo
 		aggregateTestInfo[testName].Frequency = aggregateTestInfo[testName].Frequency + 1
-		if status == "success" {
+		if status == TestStatusSuccess {
 			existingAggregateTestInfo.SuccessCount += 1
-		} else if status == "failed" {
+		} else if status == TestStatusFailed {
 			existingAggregateTestInfo.FailureCount += 1
 		} else {
 			panic("Unexpected status: " + status)

@@ -68,7 +68,7 @@ func (filterParams FilterParams) filterRule(result CircleCiBuildResult) bool {
 		}
 	}
 	if !IsEmpty(testStatus) {
-		if result.Status != *testStatus {
+		if string(result.Status) != *testStatus {
 			return false
 		}
 	}
