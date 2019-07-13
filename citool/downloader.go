@@ -1,4 +1,4 @@
-package main
+package citool
 
 import (
 	"fmt"
@@ -63,7 +63,7 @@ func validate(params DownloadParams) {
 	branchNameProvided := !IsEmpty(params.BranchName)
 	if branchNameProvided {
 		if !userNameProvided || !repositoryNameProvided {
-			panic(fmt.Sprintf("branchname(\"%s\") cannot be provided without username or respositry name", *branchName))
+			panic(fmt.Sprintf("branchname(\"%s\") cannot be provided without username or respositry name", *params.BranchName))
 		}
 	}
 	if params.Start < 0 {

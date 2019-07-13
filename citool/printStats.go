@@ -1,4 +1,4 @@
-package main
+package citool
 
 import (
 	"encoding/json"

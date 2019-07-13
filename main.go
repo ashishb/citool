@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"robpike.io/filter"
 	"strings"
+	"ci-analysis-tool/citool"
 )
 
 var mode = flag.String("mode",
@@ -52,8 +52,6 @@ var branchName = flag.String("branch",
 	"",
 	"Optional branch name to filter download/analysis on")
 
-const debugMode = true
-
 func main() {
 	flag.Parse()
 
@@ -62,10 +60,16 @@ func main() {
 		// Treat non-positional args as input files as well
 		files = append(files, flag.Args()...)
 		testResults := getCircleCiBuildResults(&files)
-		filterData(&testResults)
-		PrintTestStats(testResults)
+		filterParams := citool.FilterParams{
+			Username:       username,
+			RepositoryName: repositoryName,
+			BranchName:     branchName,
+			TestName:		testname,
+			TestStatus:		testStatus}
+		filterParams.FilterData(&testResults)
+		citool.PrintTestStats(testResults)
 	} else if *mode == "download" {
-		downloadParams := DownloadParams{
+		downloadParams := citool.DownloadParams{
 			CircleToken:    circleCiToken,
 			VcsType:        vcsType,
 			Username:       username,
@@ -73,77 +77,22 @@ func main() {
 			BranchName:     branchName,
 			Start:          *downloadStartOffset,
 			Limit:          *downloadLimit}
-		DownloadCircleCIBuildResults(downloadParams)
+		citool.DownloadCircleCIBuildResults(downloadParams)
 	} else {
 		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))
 	}
 }
 
-func getCircleCiBuildResults(files *[]string) []CircleCiBuildResult {
-	data := make([]CircleCiBuildResult, 0)
+func getCircleCiBuildResults(files *[]string) []citool.CircleCiBuildResult {
+	data := make([]citool.CircleCiBuildResult, 0)
 	for _, file := range *files {
-		LogDebug("Input file: " + file)
+		citool.LogDebug("Input file: " + file)
 		// Ignore empty file names
 		if len(file) == 0 {
 			continue
 		}
-		tmp := GetJson(file)
+		tmp := citool.GetJson(file)
 		data = append(data, tmp...)
 	}
 	return data
-}
-
-func filterData(results *[]CircleCiBuildResult) {
-	if !IsEmpty(username) {
-		LogDebug("Filtering on username: " + *username)
-	}
-	if !IsEmpty(repositoryName) {
-		LogDebug("Filtering on repository name: " + *repositoryName)
-	}
-	if !IsEmpty(branchName) {
-		LogDebug("Filtering on branch: " + *branchName)
-	}
-	if !IsEmpty(testname) {
-		LogDebug("Filtering on test name: " + *testname)
-	}
-	if !IsEmpty(testStatus) {
-		LogDebug("Filtering on test result: " + *testStatus)
-	}
-	filter.ChooseInPlace(results, filterRule)
-}
-
-func filterRule(result CircleCiBuildResult) bool {
-	if !IsEmpty(username) {
-		if result.Username != *username {
-			return false
-		}
-	}
-	if !IsEmpty(repositoryName) {
-		if result.Reponame != *repositoryName {
-			return false
-		}
-	}
-	if !IsEmpty(branchName) {
-		if result.Branch != *branchName {
-			return false
-		}
-	}
-	if !IsEmpty(testname) {
-		if result.Workflows.JobName != *testname {
-			return false
-		}
-	}
-	if !IsEmpty(testStatus) {
-		if result.Status != *testStatus {
-			return false
-		}
-	}
-	return true
-}
-
-func LogDebug(msg string) {
-	if !debugMode {
-		return
-	}
-	fmt.Println(msg)
 }
