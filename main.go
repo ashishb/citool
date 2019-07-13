@@ -1,10 +1,10 @@
 package main
 
 import (
+	"ci-analysis-tool/citool"
 	"flag"
 	"fmt"
 	"strings"
-	"ci-analysis-tool/citool"
 )
 
 var mode = flag.String("mode",
@@ -64,8 +64,8 @@ func main() {
 			Username:       username,
 			RepositoryName: repositoryName,
 			BranchName:     branchName,
-			TestName:		testname,
-			TestStatus:		testStatus}
+			TestName:       testname,
+			TestStatus:     testStatus}
 		filterParams.FilterData(&testResults)
 		citool.PrintTestStats(testResults)
 	} else if *mode == "download" {
