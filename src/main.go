@@ -15,7 +15,7 @@ var testname = flag.String("testname",
 	"",
 	"Only consider test results for this testname. Analyze mode only.")
 
-var testStatus = flag.String("testresult",
+var testStatus = flag.String("test-status",
 	"",
 	"Only consider test results with this completion status. Analyze mode only.")
 
@@ -73,6 +73,11 @@ func main() {
 		filterParams.FilterData(&testResults)
 		citool.PrintTestStats(testResults)
 	} else if *mode == "download" {
+		var testStatusType *citool.TestStatusTypes = nil
+		if !citool.IsEmpty(testStatus) {
+			tmp := citool.TestStatusTypes(citool.GetTestStatusOrFail(*testStatus))
+			testStatusType = &tmp
+		}
 		downloadParams := citool.DownloadParams{
 			CircleToken:     circleCiToken,
 			VcsType:         vcsType,
@@ -81,7 +86,8 @@ func main() {
 			BranchName:      branchName,
 			Start:           *downloadStartOffset,
 			Limit:           *downloadLimit,
-			DownloadDirPath: *downloadDirPath}
+			DownloadDirPath: *downloadDirPath,
+			TestStatus:     testStatusType}
 		citool.DownloadCircleCIBuildResults(downloadParams)
 	} else {
 		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))

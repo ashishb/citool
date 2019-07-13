@@ -24,6 +24,7 @@ type DownloadParams struct {
 	Start           int
 	Limit           int
 	DownloadDirPath string
+	TestStatus		*TestStatusTypes
 }
 
 func DownloadCircleCIBuildResults(params DownloadParams) {
@@ -81,6 +82,8 @@ func IsEmpty(value *string) bool {
 	return value == nil || len(*value) == 0
 }
 
+// Works - "https://circleci.com/api/v1.1/project/github/celo-org/celo-monpo?circle-token=${TOKEN}&limit=1&offset=5&filter=running&shallow=true"
+// Fails - "https://circleci.com/api/v1.1/project/github/celo-org/celo-monorepo/tree/master?circle-token=25b7d2f03ad0a5c9cf2a2f4740211aaf3c4d59af&filter=running&limit=1&offset=5
 func downloadCircleCIBuildResults(params DownloadParams) {
 	var downloadUrl *url.URL
 	if IsEmpty(params.Username) {
@@ -88,6 +91,7 @@ func downloadCircleCIBuildResults(params DownloadParams) {
 	} else {
 		downloadUrl = constructDownloadUrlForASpecificProject(params)
 	}
+	LogDebug(fmt.Sprintf("Downloading from %s", downloadUrl.String()))
 	data, err := getBody(*downloadUrl)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to download from %s, error: %s", downloadUrl, err))
@@ -103,15 +107,14 @@ func downloadCircleCIBuildResults(params DownloadParams) {
 
 // https://circleci.com/docs/api/#recent-builds-across-all-projects
 func constructDownloadUrlForAllProjects(params DownloadParams) *url.URL {
-	downloadUrlString := fmt.Sprintf("https://circleci.com/api/v1.1/recent-builds?"+
-		"offset=%d&"+
-		"limit=%d&"+
-		"shallow=true&"+
-		"filter=completed&"+
-		"circle-token=%s",
-		params.Start,
-		params.Limit,
-		*params.CircleToken)
+	baseUrl := "https://circleci.com/api/v1.1/recent-builds"
+	v := url.Values{}
+	v.Set("circle-token", *params.CircleToken)
+	v.Set("offset", strconv.Itoa(params.Start))
+	v.Set("limit", strconv.Itoa(params.Limit))
+	v.Set("shallow", "true")
+	queryString := v.Encode()
+	downloadUrlString := fmt.Sprintf("%s?%s", baseUrl, queryString)
 	downloadUrl, err := url.Parse(downloadUrlString)
 	if err != nil {
 		panic("Failed parse url " + downloadUrlString)
@@ -134,6 +137,9 @@ func constructDownloadUrlForASpecificProject(params DownloadParams) *url.URL {
 	v.Set("offset", strconv.Itoa(params.Start))
 	v.Set("limit", strconv.Itoa(params.Limit))
 	v.Set("shallow", "true")
+	if params.TestStatus != nil {
+		v.Set("filter", string(*params.TestStatus))
+	}
 	queryString := v.Encode()
 	downloadUrlString := fmt.Sprintf("%s?%s", baseUrl, queryString)
 	downloadUrl, err := url.Parse(downloadUrlString)
