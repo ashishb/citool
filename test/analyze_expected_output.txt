@@ -8,6 +8,7 @@ Input file: test/circleci_data/from-600-to-699.json
 Input file: test/circleci_data/from-700-to-799.json
 Input file: test/circleci_data/from-800-to-899.json
 Input file: test/circleci_data/from-900-to-998.json
+
 Number of test results: 999
 Test name                       Average test duration
 ----------                      --------------------
@@ -31,37 +32,20 @@ verification-pool-integration   38s
 
 Test name                       Success Rate
 ----------                      -----------
-end-to-end-geth-transfer-test   55/55 (100%)
-end-to-end-geth-sync-test       56/56 (100%)
-protocol-test                   56/56 (100%)
-install_dependencies            59/59 (100%)
-end-to-end-geth-governance-test 58/58 (100%)
-mobile-test                     58/58 (100%)
-mobile-android-integration      57/57 (100%)
-mobile-test-build-app           58/58 (100%)
-web                             48/48 (100%)
+web                             48/58 (82%)
+verification-pool-integration   49/58 (84%)
+build-all-packages              51/58 (87%)
+sdk-test                        52/58 (89%)
+deploy-blockchain-api           55/58 (94%)
+end-to-end-geth-transfer-test   55/56 (98%)
+mobile-android-integration      57/58 (98%)
 general-test                    58/58 (100%)
-sdk-test                        52/52 (100%)
-deploy-notification-service     58/58 (100%)
-build-all-packages              51/51 (100%)
-lint-checks                     58/58 (100%)
-deploy-blockchain-api           55/55 (100%)
-verification-pool-api           58/58 (100%)
-verification-pool-integration   49/49 (100%)
-end-to-end-geth-transfer-test   55/55 (100%)
 end-to-end-geth-sync-test       56/56 (100%)
-protocol-test                   56/56 (100%)
-install_dependencies            59/59 (100%)
-end-to-end-geth-governance-test 58/58 (100%)
-mobile-test                     58/58 (100%)
-mobile-android-integration      57/57 (100%)
 mobile-test-build-app           58/58 (100%)
-web                             48/48 (100%)
-general-test                    58/58 (100%)
-sdk-test                        52/52 (100%)
+mobile-test                     58/58 (100%)
 deploy-notification-service     58/58 (100%)
-build-all-packages              51/51 (100%)
+end-to-end-geth-governance-test 58/58 (100%)
 lint-checks                     58/58 (100%)
-deploy-blockchain-api           55/55 (100%)
+install_dependencies            59/59 (100%)
 verification-pool-api           58/58 (100%)
-verification-pool-integration   49/49 (100%)
+protocol-test                   56/56 (100%)

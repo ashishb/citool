@@ -50,7 +50,7 @@ type AggregateTestInfo struct {
 }
 
 func PrintTestStats(results []CircleCiBuildResult) {
-	fmt.Printf("Number of test results: %d\n", len(results))
+	fmt.Printf("\nNumber of test results: %d\n", len(results))
 	aggregateTestInfo := make(map[string]*AggregateTestInfo, 0)
 	for _, result := range results {
 		testName := result.Workflows.JobName
@@ -70,8 +70,10 @@ func PrintTestStats(results []CircleCiBuildResult) {
 		aggregateTestInfo[testName].Frequency = aggregateTestInfo[testName].Frequency + 1
 		if status == "success" {
 			existingAggregateTestInfo.SuccessCount += 1
-		} else if status == "failure" {
+		} else if status == "failed" {
 			existingAggregateTestInfo.FailureCount += 1
+		} else {
+			panic("Unexpected status: " + status)
 		}
 	}
 
@@ -89,6 +91,7 @@ func printTestDuration(aggregateTestInfo []*AggregateTestInfo) {
 	sort.Slice(aggregateTestInfo, func(i, j int) bool {
 		averageDuration1 := time.Duration(aggregateTestInfo[i].CumulativeDuration.Nanoseconds() / int64(aggregateTestInfo[i].Frequency))
 		averageDuration2 := time.Duration(aggregateTestInfo[j].CumulativeDuration.Nanoseconds() / int64(aggregateTestInfo[j].Frequency))
+		// Slowest test first
 		return averageDuration1 > averageDuration2
 	})
 	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
@@ -108,11 +111,9 @@ func printTestDuration(aggregateTestInfo []*AggregateTestInfo) {
 }
 
 func printTestSuccessRate(aggregateTestInfo []*AggregateTestInfo) {
-	for _, v := range aggregateTestInfo {
-		aggregateTestInfo = append(aggregateTestInfo, v)
-	}
 	sort.Slice(aggregateTestInfo, func(i, j int) bool {
-		return (aggregateTestInfo[i].SuccessCount*aggregateTestInfo[j].FailureCount >
+		// Highest failure rate first.
+		return (aggregateTestInfo[i].SuccessCount*aggregateTestInfo[j].FailureCount <
 			aggregateTestInfo[j].SuccessCount*aggregateTestInfo[i].FailureCount)
 	})
 

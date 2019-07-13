@@ -2,6 +2,7 @@ package citool
 
 type TestStatusTypes string
 
+// Only for filtering
 // https://circleci.com/docs/api/#recent-builds-across-all-projects
 const (
 	TestCompleted  TestStatusTypes = "completed"
