@@ -13,4 +13,5 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-
+# Default directory for temporary Circle CI data
+circleci_data
