@@ -52,6 +52,10 @@ var branchName = flag.String("branch",
 	"",
 	"Optional branch name to filter download/analysis on")
 
+var downloadDirPath = flag.String("download-dir",
+	"./circleci_data",
+	"Directory to download Circle CI data to")
+
 func main() {
 	flag.Parse()
 
@@ -70,13 +74,14 @@ func main() {
 		citool.PrintTestStats(testResults)
 	} else if *mode == "download" {
 		downloadParams := citool.DownloadParams{
-			CircleToken:    circleCiToken,
-			VcsType:        vcsType,
-			Username:       username,
-			RepositoryName: repositoryName,
-			BranchName:     branchName,
-			Start:          *downloadStartOffset,
-			Limit:          *downloadLimit}
+			CircleToken:     circleCiToken,
+			VcsType:         vcsType,
+			Username:        username,
+			RepositoryName:  repositoryName,
+			BranchName:      branchName,
+			Start:           *downloadStartOffset,
+			Limit:           *downloadLimit,
+			DownloadDirPath: *downloadDirPath}
 		citool.DownloadCircleCIBuildResults(downloadParams)
 	} else {
 		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))

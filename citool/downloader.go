@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -14,13 +16,14 @@ const maxDownloadCircleCiLimit = 100
 const maxFetchRetryCount = 5
 
 type DownloadParams struct {
-	CircleToken    *string
-	VcsType        *string
-	Username       *string
-	RepositoryName *string
-	BranchName     *string
-	Start          int
-	Limit          int
+	CircleToken     *string
+	VcsType         *string
+	Username        *string
+	RepositoryName  *string
+	BranchName      *string
+	Start           int
+	Limit           int
+	DownloadDirPath string
 }
 
 func DownloadCircleCIBuildResults(params DownloadParams) {
@@ -89,7 +92,7 @@ func downloadCircleCIBuildResults(params DownloadParams) {
 	if err != nil {
 		panic(fmt.Sprintf("Failed to download from %s, error: %s", downloadUrl, err))
 	}
-	outputFilename := getOutputFilename(params.Start, params.Limit)
+	outputFilename := getOutputFilename(params.DownloadDirPath, params.Start, params.Limit)
 	err2 := writeToFile(outputFilename, data)
 	if err2 == nil {
 		LogDebug(fmt.Sprintf("Write %s", outputFilename))
@@ -141,12 +144,21 @@ func constructDownloadUrlForASpecificProject(params DownloadParams) *url.URL {
 }
 
 func writeToFile(filename string, contents []byte) error {
+	// Create up to one parent if required
+	maybeCreateDirectory(filepath.Dir(filename))
 	return ioutil.WriteFile(filename, contents, 0644)
 }
 
+func maybeCreateDirectory(dirpath string) bool {
+	if len(dirpath) == 0 || dirpath == ".." && dirpath == string(filepath.Separator) {
+		return false
+	}
+	return os.Mkdir(dirpath, os.ModePerm) == nil
+}
+
 // TODO: make this more customizable
-func getOutputFilename(start int, limit int) string {
-	return fmt.Sprintf("./data/from-%d-to-%d.json", start, start+limit-1)
+func getOutputFilename(downloadDirPath string, start int, limit int) string {
+	return fmt.Sprintf(filepath.Join(downloadDirPath, "from-%d-to-%d.json"), start, start+limit-1)
 }
 
 func getBody(url url.URL) ([]byte, error) {
