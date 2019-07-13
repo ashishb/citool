@@ -8,8 +8,8 @@ type FilterParams struct {
 	Username       *string
 	RepositoryName *string
 	BranchName     *string
-	TestName       *string
-	TestStatus     *string
+	JobName        *string
+	JobStatus      *string
 	Start          int
 	Limit          int
 }
@@ -18,8 +18,8 @@ func (filterParams FilterParams) FilterData(results *[]CircleCiBuildResult) {
 	username := filterParams.Username
 	repositoryName := filterParams.RepositoryName
 	branchName := filterParams.BranchName
-	testname := filterParams.TestName
-	testStatus := filterParams.TestStatus
+	jobname := filterParams.JobName
+	jobStatus := filterParams.JobStatus
 
 	if !IsEmpty(username) {
 		LogDebug("Filtering on username: " + *username)
@@ -30,11 +30,11 @@ func (filterParams FilterParams) FilterData(results *[]CircleCiBuildResult) {
 	if !IsEmpty(branchName) {
 		LogDebug("Filtering on branch: " + *branchName)
 	}
-	if !IsEmpty(testname) {
-		LogDebug("Filtering on test name: " + *testname)
+	if !IsEmpty(jobname) {
+		LogDebug("Filtering on job name: " + *jobname)
 	}
-	if !IsEmpty(testStatus) {
-		LogDebug("Filtering on test result: " + *testStatus)
+	if !IsEmpty(jobStatus) {
+		LogDebug("Filtering on job result: " + *jobStatus)
 	}
 
 	filter.ChooseInPlace(results, filterParams.filterRule)
@@ -44,8 +44,8 @@ func (filterParams FilterParams) filterRule(result CircleCiBuildResult) bool {
 	username := filterParams.Username
 	repositoryName := filterParams.RepositoryName
 	branchName := filterParams.BranchName
-	testname := filterParams.TestName
-	testStatus := filterParams.TestStatus
+	jobname := filterParams.JobName
+	jobStatus := filterParams.JobStatus
 
 	if !IsEmpty(username) {
 		if result.Username != *username {
@@ -62,13 +62,13 @@ func (filterParams FilterParams) filterRule(result CircleCiBuildResult) bool {
 			return false
 		}
 	}
-	if !IsEmpty(testname) {
-		if result.Workflows.JobName != *testname {
+	if !IsEmpty(jobname) {
+		if result.Workflows.JobName != *jobname {
 			return false
 		}
 	}
-	if !IsEmpty(testStatus) {
-		if string(result.Status) != *testStatus {
+	if !IsEmpty(jobStatus) {
+		if string(result.Status) != *jobStatus {
 			return false
 		}
 	}

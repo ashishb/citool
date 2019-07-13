@@ -24,7 +24,7 @@ type DownloadParams struct {
 	Start           int
 	Limit           int
 	DownloadDirPath string
-	TestStatus      *TestStatusFilterTypes
+	JobStatus       *JobStatusFilterTypes
 }
 
 func DownloadCircleCIBuildResults(params DownloadParams) {
@@ -137,8 +137,8 @@ func constructDownloadUrlForASpecificProject(params DownloadParams) *url.URL {
 	v.Set("offset", strconv.Itoa(params.Start))
 	v.Set("limit", strconv.Itoa(params.Limit))
 	v.Set("shallow", "true")
-	if params.TestStatus != nil {
-		v.Set("filter", string(*params.TestStatus))
+	if params.JobStatus != nil {
+		v.Set("filter", string(*params.JobStatus))
 	}
 	queryString := v.Encode()
 	downloadUrlString := fmt.Sprintf("%s?%s", baseUrl, queryString)

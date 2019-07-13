@@ -11,17 +11,17 @@ var mode = flag.String("mode",
 	"analyze",
 	"Mode - \"download\" or \"analyze\"")
 
-var testname = flag.String("testname",
+var jobname = flag.String("jobname",
 	"",
-	"Only consider test results for this testname. Analyze mode only.")
+	"Only consider job results for this jobname. Analyze mode only.")
 
-var testStatus = flag.String("test-status",
+var jobStatus = flag.String("jobstatus",
 	"",
-	"Only consider test results with this completion status. Analyze mode only.")
+	"Only consider job results with this completion status. Analyze mode only.")
 
 var inputFiles = flag.String("input-files",
 	"",
-	"Comma-separated list of files containing downloaded test results from CircleCI. Analyze mode only.")
+	"Comma-separated list of files containing downloaded job results from CircleCI. Analyze mode only.")
 
 var circleCiToken = flag.String("circle-token",
 	"",
@@ -63,20 +63,20 @@ func main() {
 		files := strings.Split(*inputFiles, ",")
 		// Treat non-positional args as input files as well
 		files = append(files, flag.Args()...)
-		testResults := getCircleCiBuildResults(&files)
+		jobResults := getCircleCiBuildResults(&files)
 		filterParams := citool.FilterParams{
 			Username:       username,
 			RepositoryName: repositoryName,
 			BranchName:     branchName,
-			TestName:       testname,
-			TestStatus:     testStatus}
-		filterParams.FilterData(&testResults)
-		citool.PrintTestStats(testResults)
+			JobName:        jobname,
+			JobStatus:      jobStatus}
+		filterParams.FilterData(&jobResults)
+		citool.PrintJobStats(jobResults)
 	} else if *mode == "download" {
-		var testStatusType *citool.TestStatusFilterTypes = nil
-		if !citool.IsEmpty(testStatus) {
-			tmp := citool.TestStatusFilterTypes(citool.GetTestStatusFilterOrFail(*testStatus))
-			testStatusType = &tmp
+		var jobStatusType *citool.JobStatusFilterTypes = nil
+		if !citool.IsEmpty(jobStatus) {
+			tmp := citool.JobStatusFilterTypes(citool.GetJobStatusFilterOrFail(*jobStatus))
+			jobStatusType = &tmp
 		}
 		downloadParams := citool.DownloadParams{
 			CircleToken:     circleCiToken,
@@ -87,7 +87,7 @@ func main() {
 			Start:           *downloadStartOffset,
 			Limit:           *downloadLimit,
 			DownloadDirPath: *downloadDirPath,
-			TestStatus:      testStatusType}
+			JobStatus:       jobStatusType}
 		citool.DownloadCircleCIBuildResults(downloadParams)
 	} else {
 		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))

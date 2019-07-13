@@ -20,7 +20,7 @@ type CircleCiBuildResult struct {
 	Reponame    string                `json:"reponame"`
 	Branch      string                `json:"branch"`
 	BuildNumber int                   `json:"build_num"`
-	Status      TestStatusType        `json:"status"`
+	Status      JobStatusType         `json:"status"`
 	EndTime     string                `json:"stop_time"`
 	StartTime   string                `json:"start_time"`
 	Workflows   CircleCiBuildWorkflow `json:"workflows"`
@@ -39,98 +39,98 @@ func GetJson(filename string) []CircleCiBuildResult {
 	return circleCiBuildResults
 }
 
-// Aggregated test information
-type AggregateTestInfo struct {
-	TestName           string
+// Aggregated job information
+type AggregateJobInfo struct {
+	JobName            string
 	Frequency          int
 	CumulativeDuration time.Duration
 	SuccessCount       int32
 	FailureCount       int32
 }
 
-func PrintTestStats(results []CircleCiBuildResult) {
-	fmt.Printf("\nNumber of test results: %d\n", len(results))
-	aggregateTestInfo := make(map[string]*AggregateTestInfo, 0)
+func PrintJobStats(results []CircleCiBuildResult) {
+	fmt.Printf("\nNumber of job results: %d\n", len(results))
+	aggregateJobInfo := make(map[string]*AggregateJobInfo, 0)
 	for _, result := range results {
-		testName := result.Workflows.JobName
+		jobName := result.Workflows.JobName
 		status := result.Status
 		// Only filter on success/failure for now
 		if status != "success" && status != "failed" {
 			continue
 		}
-		duration := getTestDuration(result)
-		existingAggregateTestInfo, present := aggregateTestInfo[testName]
+		duration := getJobDuration(result)
+		existingAggregateJobInfo, present := aggregateJobInfo[jobName]
 		if !present {
-			existingAggregateTestInfo = &AggregateTestInfo{testName, 0, time.Duration(0), 0, 0}
+			existingAggregateJobInfo = &AggregateJobInfo{jobName, 0, time.Duration(0), 0, 0}
 		}
-		existingAggregateTestInfo.Frequency += 1
-		existingAggregateTestInfo.CumulativeDuration += duration
-		aggregateTestInfo[testName] = existingAggregateTestInfo
-		aggregateTestInfo[testName].Frequency = aggregateTestInfo[testName].Frequency + 1
-		if status == TestStatusSuccess {
-			existingAggregateTestInfo.SuccessCount += 1
-		} else if status == TestStatusFailed {
-			existingAggregateTestInfo.FailureCount += 1
+		existingAggregateJobInfo.Frequency += 1
+		existingAggregateJobInfo.CumulativeDuration += duration
+		aggregateJobInfo[jobName] = existingAggregateJobInfo
+		aggregateJobInfo[jobName].Frequency = aggregateJobInfo[jobName].Frequency + 1
+		if status == JobStatusSuccess {
+			existingAggregateJobInfo.SuccessCount += 1
+		} else if status == JobStatusFailed {
+			existingAggregateJobInfo.FailureCount += 1
 		} else {
 			panic("Unexpected status: " + status)
 		}
 	}
 
-	values := make([]*AggregateTestInfo, 0, len(aggregateTestInfo))
-	for _, v := range aggregateTestInfo {
+	values := make([]*AggregateJobInfo, 0, len(aggregateJobInfo))
+	for _, v := range aggregateJobInfo {
 		values = append(values, v)
 	}
 
-	printTestSuccessRate(values)
+	printJobSuccessRate(values)
 	fmt.Println("")
-	printTestDuration(values)
+	printJobDuration(values)
 	fmt.Println("")
 	printTimeSeriesData(results)
 }
 
-func printTestDuration(aggregateTestInfo []*AggregateTestInfo) {
-	sort.Slice(aggregateTestInfo, func(i, j int) bool {
-		averageDuration1 := time.Duration(aggregateTestInfo[i].CumulativeDuration.Nanoseconds() / int64(aggregateTestInfo[i].Frequency))
-		averageDuration2 := time.Duration(aggregateTestInfo[j].CumulativeDuration.Nanoseconds() / int64(aggregateTestInfo[j].Frequency))
-		// Slowest test first
+func printJobDuration(aggregateJobInfo []*AggregateJobInfo) {
+	sort.Slice(aggregateJobInfo, func(i, j int) bool {
+		averageDuration1 := time.Duration(aggregateJobInfo[i].CumulativeDuration.Nanoseconds() / int64(aggregateJobInfo[i].Frequency))
+		averageDuration2 := time.Duration(aggregateJobInfo[j].CumulativeDuration.Nanoseconds() / int64(aggregateJobInfo[j].Frequency))
+		// Slowest job first
 		return averageDuration1 > averageDuration2
 	})
 	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
 	//noinspection GoUnhandledErrorResult
-	fmt.Fprintln(writer, "Test name\tAverage test duration")
+	fmt.Fprintln(writer, "Job name\tAverage job duration")
 	//noinspection GoUnhandledErrorResult
 	fmt.Fprintln(writer, "----------\t--------------------")
-	for _, v := range aggregateTestInfo {
+	for _, v := range aggregateJobInfo {
 		averageDuration := time.Duration(v.CumulativeDuration.Nanoseconds() / int64(v.Frequency))
 		// We don't need accuracy below one second.
 		averageDuration = averageDuration.Round(time.Second)
 		//noinspection GoUnhandledErrorResult
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%v", v.TestName, averageDuration))
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%v", v.JobName, averageDuration))
 	}
 	//noinspection GoUnhandledErrorResult
 	writer.Flush()
 }
 
-func printTestSuccessRate(aggregateTestInfo []*AggregateTestInfo) {
-	sort.Slice(aggregateTestInfo, func(i, j int) bool {
+func printJobSuccessRate(aggregateJobInfo []*AggregateJobInfo) {
+	sort.Slice(aggregateJobInfo, func(i, j int) bool {
 		// Highest failure rate first.
-		return (aggregateTestInfo[i].SuccessCount*aggregateTestInfo[j].FailureCount <
-			aggregateTestInfo[j].SuccessCount*aggregateTestInfo[i].FailureCount)
+		return (aggregateJobInfo[i].SuccessCount*aggregateJobInfo[j].FailureCount <
+			aggregateJobInfo[j].SuccessCount*aggregateJobInfo[i].FailureCount)
 	})
 
 	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
 	//noinspection GoUnhandledErrorResult
-	fmt.Fprintln(writer, "Test name\tSuccess Rate")
+	fmt.Fprintln(writer, "Job name\tSuccess Rate")
 	//noinspection GoUnhandledErrorResult
 	fmt.Fprintln(writer, "----------\t-----------")
-	for _, v := range aggregateTestInfo {
+	for _, v := range aggregateJobInfo {
 		successRate := int32(0)
 		if v.SuccessCount+v.FailureCount > 0 {
 			successRate = (100 * v.SuccessCount) / (v.SuccessCount + v.FailureCount)
 		}
 		//noinspection GoUnhandledErrorResult
 		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d/%d (%d%%)",
-			v.TestName, v.SuccessCount, v.SuccessCount+v.FailureCount, successRate))
+			v.JobName, v.SuccessCount, v.SuccessCount+v.FailureCount, successRate))
 	}
 	//noinspection GoUnhandledErrorResult
 	writer.Flush()
@@ -142,22 +142,22 @@ type StartTimeAndDurationPair struct {
 }
 
 func printTimeSeriesData(results []CircleCiBuildResult) {
-	testDurationsInSeconds := make(map[string][]StartTimeAndDurationPair, 0)
+	jobDurationsInSeconds := make(map[string][]StartTimeAndDurationPair, 0)
 	for _, result := range results {
 		// Only consider successful jobs to avoid skew due to failed job which might fail early on.
-		if result.Status != TestStatusSuccess {
+		if result.Status != JobStatusSuccess {
 			continue
 		}
-		testName := result.Workflows.JobName
+		jobName := result.Workflows.JobName
 		startTime := result.StartTime
-		duration := getTestDuration(result)
+		duration := getJobDuration(result)
 		startTimeAndDurationPair := StartTimeAndDurationPair{
 			StartTime: getTime(startTime),
 			Duration:  duration}
-		testDurationsInSeconds[testName] = append(
-			testDurationsInSeconds[testName], startTimeAndDurationPair)
+		jobDurationsInSeconds[jobName] = append(
+			jobDurationsInSeconds[jobName], startTimeAndDurationPair)
 	}
-	for key, value := range testDurationsInSeconds {
+	for key, value := range jobDurationsInSeconds {
 		// Sort
 		sort.Slice(value, func(i, j int) bool {
 			// chronological order
@@ -167,7 +167,7 @@ func printTimeSeriesData(results []CircleCiBuildResult) {
 		for i, value := range value {
 			durations[i] = value.Duration.Seconds()
 		}
-		fmt.Printf("\nTest name: %s (%d data points)\n\n", key, len(durations))
+		fmt.Printf("\nJob name: %s (%d data points)\n\n", key, len(durations))
 		graph := asciigraph.Plot(durations,
 			asciigraph.Height(10), asciigraph.Width(100))
 		fmt.Println(graph)
@@ -182,7 +182,7 @@ func getTime(timeString string) time.Time {
 	return parsedTime
 }
 
-func getTestDuration(buildResult CircleCiBuildResult) time.Duration {
+func getJobDuration(buildResult CircleCiBuildResult) time.Duration {
 	startTime := getTime(buildResult.StartTime)
 	endTime := getTime(buildResult.EndTime)
 	return endTime.Sub(startTime)
