@@ -56,9 +56,14 @@ var downloadDirPath = flag.String("download-dir",
 	"./circleci_data",
 	"Directory to download Circle CI data to")
 
+var debugMode = flag.Bool("debug",
+	false,
+	"Set this to true to enable debug logging")
+
 func main() {
 	flag.Parse()
 
+	citool.SetDebugMode(*debugMode)
 	if *mode == "analyze" {
 		files := strings.Split(*inputFiles, ",")
 		// Treat non-positional args as input files as well
@@ -105,5 +110,7 @@ func getCircleCiBuildResults(files *[]string) []citool.CircleCiBuildResult {
 		tmp := citool.GetJson(file)
 		data = append(data, tmp...)
 	}
+	// To add an empty line after debug logging.
+	citool.LogDebug("")
 	return data
 }

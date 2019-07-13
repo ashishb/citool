@@ -2,7 +2,11 @@ package citool
 
 import "fmt"
 
-const debugMode = true
+var debugMode = true
+
+func SetDebugMode(newMode bool) {
+	debugMode = newMode
+}
 
 func LogDebug(msg string) {
 	if !debugMode {

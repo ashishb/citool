@@ -49,7 +49,7 @@ type AggregateJobInfo struct {
 }
 
 func PrintJobStats(results []CircleCiBuildResult) {
-	fmt.Printf("\nNumber of job results: %d\n", len(results))
+	fmt.Printf("Number of job results: %d\n", len(results))
 	aggregateJobInfo := make(map[string]*AggregateJobInfo, 0)
 	for _, result := range results {
 		jobName := result.Workflows.JobName
