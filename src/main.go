@@ -1,7 +1,7 @@
 package main
 
 import (
-	"ci-analysis-tool/citool"
+	"ci-analysis-tool/src/citool"
 	"flag"
 	"fmt"
 	"strings"
