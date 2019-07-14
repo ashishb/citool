@@ -9,7 +9,7 @@ import (
 
 var mode = flag.String("mode",
 	"analyze",
-	"Mode - \"download\" or \"analyze\"")
+	"Mode - \"download\" or \"analyze\" or \"version\"")
 
 var jobname = flag.String("jobname",
 	"",
@@ -60,6 +60,8 @@ var debugMode = flag.Bool("debug",
 	false,
 	"Set this to true to enable debug logging")
 
+const versionString = "0.1.0"
+
 func main() {
 	flag.Parse()
 
@@ -94,6 +96,8 @@ func main() {
 			DownloadDirPath: *downloadDirPath,
 			JobStatus:       jobStatusType}
 		citool.DownloadCircleCIBuildResults(downloadParams)
+	} else if *mode == "version" {
+		fmt.Printf("%s\n", versionString)
 	} else {
 		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))
 	}
