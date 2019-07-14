@@ -115,6 +115,11 @@ Job name: build-jdk9 (30 data points)
 
 ```
 
+```
+$ ./citool --version
+0.1.0
+```
+
 ### Development
 
-1. ` GO111MODULE=on go build -o citool src/main.go` - to build 
+1. `make build` - to build
