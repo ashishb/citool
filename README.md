@@ -44,13 +44,13 @@ A tool to download and analyze Circle CI jobs data.
 Generate a Circle CI API token at [https://circleci.com/account/api](https://circleci.com/account/api). Use the token to **download the data**
 
 ```
-$ GO111MODULE=on go run src/*.go --mode download --circle-token ${TOKEN} --limit 100 --offset 0 --username ashishb --reponame androidtool --download-dir androidtool_data
+$ ./citool --mode download --circle-token ${TOKEN} --limit 100 --offset 0 --username ashishb --reponame androidtool --download-dir androidtool_data
 ```
 
 Now, analyze
 
 ```
-$ $ GO111MODULE=on go run src/*.go --mode analyze androidtool_data/*.json
+$ ./citool --mode analyze androidtool_data/*.json
 Number of job results: 100
 Job name    Success Rate
 --------    -----------
@@ -112,4 +112,9 @@ Job name: build-jdk9 (30 data points)
  40.33 ┤                           ╰╮             ╭╯
  39.44 ┤                            ╰─╮   ╭───────╯
  38.55 ┤                              ╰───╯
- ```
+
+```
+
+### Development
+
+1. ` GO111MODULE=on go build -o citool src/main.go` - to build 
