@@ -10,7 +10,7 @@ import (
 
 var mode = flag.String("mode",
 	"",
-	"Mode - \"download\" or \"analyze\" or \"version\"")
+	"Mode - \"download\" or \"analyze\"")
 
 var jobname = flag.String("jobname",
 	"",
@@ -73,18 +73,23 @@ var debugMode = flag.Bool("debug",
 	false,
 	"Set this to true to enable debug logging")
 
+var version = flag.Bool("version",
+	false,
+	"Prints version of this tool")
+
 const versionString = "0.1.0"
 
 func main() {
 	flag.Parse()
 
 	citool.SetDebugMode(*debugMode)
-	if *mode == "analyze" {
+	if *version {
+		fmt.Printf("%s\n", versionString)
+		os.Exit(0)
+	} else if *mode == "analyze" {
 		analyze()
 	} else if *mode == "download" {
 		download()
-	} else if *mode == "version" {
-		fmt.Printf("%s\n", versionString)
 	} else {
 		fmt.Printf("Unexpected mode: \"%s\"\n", *mode)
 		os.Exit(1)
