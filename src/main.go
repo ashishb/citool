@@ -4,11 +4,12 @@ import (
 	"ci-analysis-tool/src/citool"
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 )
 
 var mode = flag.String("mode",
-	"analyze",
+	"",
 	"Mode - \"download\" or \"analyze\" or \"version\"")
 
 var jobname = flag.String("jobname",
@@ -85,7 +86,8 @@ func main() {
 	} else if *mode == "version" {
 		fmt.Printf("%s\n", versionString)
 	} else {
-		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))
+		fmt.Printf("Unexpected mode: \"%s\"\n", *mode)
+		os.Exit(1)
 	}
 }
 
