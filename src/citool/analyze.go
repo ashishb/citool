@@ -52,6 +52,7 @@ type AnalyzeParams struct {
 	PrintJobSuccessRate         bool
 	PrintJobDurationInAggregate bool
 	PrintJobDurationTimeSeries  bool
+	PrintJobSuccessTimeSeries   bool
 }
 
 func PrintJobStats(results []CircleCiBuildResult, params AnalyzeParams) {
@@ -96,7 +97,10 @@ func PrintJobStats(results []CircleCiBuildResult, params AnalyzeParams) {
 		fmt.Println("")
 	}
 	if params.PrintJobDurationTimeSeries {
-		printTimeSeriesData(results)
+		printTimeSeriesDurationData(results)
+	}
+	if params.PrintJobSuccessTimeSeries {
+		printTimeSeriesSuccessData(results)
 	}
 }
 
@@ -164,10 +168,11 @@ type StartTimeAndDurationPair struct {
 }
 
 const avgRate = 10
-const graphHeight = 20 // lines
-const graphWidth = 100 // characters
+const maxGraphHeight = 20 // lines
+const maxGraphWidth = 100 // characters
 
-func printTimeSeriesData(results []CircleCiBuildResult) {
+func printTimeSeriesDurationData(results []CircleCiBuildResult) {
+	fmt.Printf("Printing job duration graphs\n")
 	jobDurationsInSeconds := make(map[string][]StartTimeAndDurationPair, 0)
 	for _, result := range results {
 		// Only consider successful jobs to avoid skew due to failed job which might fail early on.
@@ -194,10 +199,67 @@ func printTimeSeriesData(results []CircleCiBuildResult) {
 		for i, value := range value {
 			durations[i] = value.Duration.Seconds()
 		}
-		durations = getMovingAverage(durations, avgRate)
+		if len(durations) > avgRate {
+			durations = getMovingAverage(durations, avgRate)
+		}
 		fmt.Printf("\nJob name: %s (%d data points)\n\n", key, len(durations))
+		graphWidth := len(durations)
+		if graphWidth > maxGraphWidth {
+			graphWidth = maxGraphWidth
+		}
 		graph := asciigraph.Plot(durations,
-			asciigraph.Height(graphHeight), asciigraph.Width(graphWidth))
+			asciigraph.Height(maxGraphHeight), asciigraph.Width(graphWidth))
+		fmt.Println(graph)
+	}
+}
+
+type StartTimeAndJobStatusPair struct {
+	StartTime time.Time // in what units?
+	JobStatus JobStatusType
+}
+
+func printTimeSeriesSuccessData(results []CircleCiBuildResult) {
+	fmt.Printf("Printing job success graphs\n")
+	jobSucess := make(map[string][]StartTimeAndJobStatusPair, 0)
+	for _, result := range results {
+		// Only consider successful and failed jobs to avoid skew due to failed job which might fail early on.
+		if result.Status != JobStatusSuccess && result.Status != JobStatusFailed {
+			continue
+		}
+		jobName := result.Workflows.JobName
+		jobStatus := result.Status
+		startTime := result.StartTime
+		startTimeAndJobStatusPair := StartTimeAndJobStatusPair{
+			StartTime: getTime(startTime),
+			JobStatus: jobStatus}
+		jobSucess[jobName] = append(
+			jobSucess[jobName], startTimeAndJobStatusPair)
+	}
+	for key, value := range jobSucess {
+		// Sort
+		sort.Slice(value, func(i, j int) bool {
+			// chronological order
+			return value[i].StartTime.Sub(value[j].StartTime).Seconds() < 0
+		})
+		// Get the job success/failure from the chronologically sorted array.
+		jobStatus := make([]float64, len(value))
+		for i, value := range value {
+			if value.JobStatus == JobStatusSuccess {
+				jobStatus[i] = 1.0
+			} else {
+				jobStatus[i] = 0.0
+			}
+		}
+		if len(jobStatus) > maxGraphWidth {
+			jobStatus = getMovingAverage(jobStatus, avgRate)
+		}
+		fmt.Printf("\nJob name: %s (%d data points)\n\n", key, len(jobStatus))
+		graphWidth := len(jobStatus)
+		if graphWidth > maxGraphWidth {
+			graphWidth = maxGraphWidth
+		}
+		graph := asciigraph.Plot(jobStatus,
+			asciigraph.Height(maxGraphHeight), asciigraph.Width(graphWidth))
 		fmt.Println(graph)
 	}
 }
@@ -219,8 +281,7 @@ func getJobDuration(buildResult CircleCiBuildResult) time.Duration {
 func getMovingAverage(source []float64, numPoints int) []float64 {
 	sourceNumOfPoints := len(source)
 	if sourceNumOfPoints < numPoints {
-		panic("This method should not have been called since we have less than " +
-			string(numPoints) + " of points")
+		panic(fmt.Sprintf("This method should not have been called since we have less than %d points", numPoints))
 	}
 	LogDebug(fmt.Sprintf("Size: %d", sourceNumOfPoints-(numPoints-1)))
 	target := make([]float64, sourceNumOfPoints-(numPoints-1))

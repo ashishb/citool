@@ -69,6 +69,10 @@ var printJobDurationTimeSeries = flag.Bool("print-duration-graph",
 	true,
 	"Print per-job duration time series graph (yes, a graph). Analyze mode only.")
 
+var printJobSuccessTimeSeries = flag.Bool("print-success-graph",
+	true,
+	"Print per-job success graph (yes, a graph). Analyze mode only.")
+
 var debugMode = flag.Bool("debug",
 	false,
 	"Set this to true to enable debug logging")
@@ -111,7 +115,8 @@ func analyze() {
 	analyzeParams := citool.AnalyzeParams{
 		PrintJobSuccessRate:         *printJobSuccessRate,
 		PrintJobDurationInAggregate: *printJobDuration,
-		PrintJobDurationTimeSeries:  *printJobDurationTimeSeries}
+		PrintJobDurationTimeSeries:  *printJobDurationTimeSeries,
+		PrintJobSuccessTimeSeries:   *printJobSuccessTimeSeries}
 	citool.PrintJobStats(jobResults, analyzeParams)
 }
 
@@ -135,15 +140,23 @@ func download() {
 }
 
 func getCircleCiBuildResults(files *[]string) []citool.CircleCiBuildResult {
+	foundAtleastOneFile := false
 	data := make([]citool.CircleCiBuildResult, 0)
 	for _, file := range *files {
-		citool.LogDebug("Input file: " + file)
+		citool.LogDebug(fmt.Sprintf("Input file: \"%s\"", file))
 		// Ignore empty file names
 		if len(file) == 0 {
 			continue
 		}
 		tmp := citool.GetJson(file)
+		if len(data) > 0 {
+			foundAtleastOneFile = true
+		}
 		data = append(data, tmp...)
+	}
+	if !foundAtleastOneFile {
+		fmt.Printf("No input files provided\n")
+		os.Exit(1)
 	}
 	// To add an empty line after debug logging.
 	citool.LogDebug("")
