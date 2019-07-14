@@ -1,16 +1,25 @@
-Input file: test/circleci_data/from-0-to-99.json
-Input file: test/circleci_data/from-100-to-199.json
-Input file: test/circleci_data/from-200-to-299.json
-Input file: test/circleci_data/from-300-to-399.json
-Input file: test/circleci_data/from-400-to-499.json
-Input file: test/circleci_data/from-500-to-599.json
-Input file: test/circleci_data/from-600-to-699.json
-Input file: test/circleci_data/from-700-to-799.json
-Input file: test/circleci_data/from-800-to-899.json
-Input file: test/circleci_data/from-900-to-998.json
+Number of job results: 999
+Job name                        Success Rate
+--------                        -----------
+web                             48/58 (82%)
+verification-pool-integration   49/58 (84%)
+build-all-packages              51/58 (87%)
+sdk-test                        52/58 (89%)
+deploy-blockchain-api           55/58 (94%)
+end-to-end-geth-transfer-test   55/56 (98%)
+mobile-android-integration      57/58 (98%)
+verification-pool-api           58/58 (100%)
+protocol-test                   56/56 (100%)
+mobile-test-build-app           58/58 (100%)
+mobile-test                     58/58 (100%)
+lint-checks                     58/58 (100%)
+install_dependencies            59/59 (100%)
+general-test                    58/58 (100%)
+end-to-end-geth-sync-test       56/56 (100%)
+end-to-end-geth-governance-test 58/58 (100%)
+deploy-notification-service     58/58 (100%)
 
-Number of test results: 999
-Test name                       Average test duration
+Job name                        Average job duration
 ----------                      --------------------
 end-to-end-geth-transfer-test   11m41s
 end-to-end-geth-sync-test       5m33s
@@ -30,22 +39,3 @@ deploy-blockchain-api           1m4s
 verification-pool-api           47s
 verification-pool-integration   38s
 
-Test name                       Success Rate
-----------                      -----------
-web                             48/58 (82%)
-verification-pool-integration   49/58 (84%)
-build-all-packages              51/58 (87%)
-sdk-test                        52/58 (89%)
-deploy-blockchain-api           55/58 (94%)
-end-to-end-geth-transfer-test   55/56 (98%)
-mobile-android-integration      57/58 (98%)
-general-test                    58/58 (100%)
-end-to-end-geth-sync-test       56/56 (100%)
-mobile-test-build-app           58/58 (100%)
-mobile-test                     58/58 (100%)
-deploy-notification-service     58/58 (100%)
-end-to-end-geth-governance-test 58/58 (100%)
-lint-checks                     58/58 (100%)
-install_dependencies            59/59 (100%)
-verification-pool-api           58/58 (100%)
-protocol-test                   56/56 (100%)

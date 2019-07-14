@@ -56,6 +56,18 @@ var downloadDirPath = flag.String("download-dir",
 	"./circleci_data",
 	"Directory to download Circle CI data to")
 
+var printJobSuccessRate = flag.Bool("print-success-rate",
+	true,
+	"Print per-job aggregated success rate. Analyze mode only.")
+
+var printJobDuration = flag.Bool("print-duration",
+	true,
+	"Print per-job average duration. Analyze mode only.")
+
+var printJobDurationTimeSeries = flag.Bool("print-duration-graph",
+	true,
+	"Print per-job duration time series graph (yes, a graph). Analyze mode only.")
+
 var debugMode = flag.Bool("debug",
 	false,
 	"Set this to true to enable debug logging")
@@ -78,7 +90,11 @@ func main() {
 			JobName:        jobname,
 			JobStatus:      jobStatus}
 		filterParams.FilterData(&jobResults)
-		citool.PrintJobStats(jobResults)
+		analyzeParams := citool.AnalyzeParams{
+			PrintJobSuccessRate:         *printJobSuccessRate,
+			PrintJobDurationInAggregate: *printJobDuration,
+			PrintJobDurationTimeSeries:  *printJobDurationTimeSeries}
+		citool.PrintJobStats(jobResults, analyzeParams)
 	} else if *mode == "download" {
 		var jobStatusType *citool.JobStatusFilterTypes = nil
 		if !citool.IsEmpty(jobStatus) {

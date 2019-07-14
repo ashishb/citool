@@ -48,7 +48,13 @@ type AggregateJobInfo struct {
 	FailureCount       int32
 }
 
-func PrintJobStats(results []CircleCiBuildResult) {
+type AnalyzeParams struct {
+	PrintJobSuccessRate         bool
+	PrintJobDurationInAggregate bool
+	PrintJobDurationTimeSeries  bool
+}
+
+func PrintJobStats(results []CircleCiBuildResult, params AnalyzeParams) {
 	fmt.Printf("Number of job results: %d\n", len(results))
 	aggregateJobInfo := make(map[string]*AggregateJobInfo, 0)
 	for _, result := range results {
@@ -81,19 +87,29 @@ func PrintJobStats(results []CircleCiBuildResult) {
 		values = append(values, v)
 	}
 
-	printJobSuccessRate(values)
-	fmt.Println("")
-	printJobDuration(values)
-	fmt.Println("")
-	printTimeSeriesData(results)
+	if params.PrintJobSuccessRate {
+		printJobSuccessRate(values)
+		fmt.Println("")
+	}
+	if params.PrintJobDurationInAggregate {
+		printJobDuration(values)
+		fmt.Println("")
+	}
+	if params.PrintJobDurationTimeSeries {
+		printTimeSeriesData(results)
+	}
 }
 
 func printJobDuration(aggregateJobInfo []*AggregateJobInfo) {
 	sort.Slice(aggregateJobInfo, func(i, j int) bool {
 		averageDuration1 := time.Duration(aggregateJobInfo[i].CumulativeDuration.Nanoseconds() / int64(aggregateJobInfo[i].Frequency))
 		averageDuration2 := time.Duration(aggregateJobInfo[j].CumulativeDuration.Nanoseconds() / int64(aggregateJobInfo[j].Frequency))
-		// Slowest job first
-		return averageDuration1 > averageDuration2
+		if averageDuration1 != averageDuration2 {
+			// Slowest job first
+			return averageDuration1 > averageDuration2
+		}
+		// If the jobs take same time then sort on the basis of name to have stable outcome
+		return aggregateJobInfo[i].JobName > aggregateJobInfo[j].JobName
 	})
 	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
 	//noinspection GoUnhandledErrorResult
@@ -114,15 +130,21 @@ func printJobDuration(aggregateJobInfo []*AggregateJobInfo) {
 func printJobSuccessRate(aggregateJobInfo []*AggregateJobInfo) {
 	sort.Slice(aggregateJobInfo, func(i, j int) bool {
 		// Highest failure rate first.
-		return (aggregateJobInfo[i].SuccessCount*aggregateJobInfo[j].FailureCount <
+		comparison := (aggregateJobInfo[i].SuccessCount*aggregateJobInfo[j].FailureCount -
 			aggregateJobInfo[j].SuccessCount*aggregateJobInfo[i].FailureCount)
+		if comparison != 0 {
+			return comparison < 0
+		} else {
+			// If the jobs have the same success rate then sort on the basis of name to have stable outcome
+			return aggregateJobInfo[i].JobName > aggregateJobInfo[j].JobName
+		}
 	})
 
 	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
 	//noinspection GoUnhandledErrorResult
 	fmt.Fprintln(writer, "Job name\tSuccess Rate")
 	//noinspection GoUnhandledErrorResult
-	fmt.Fprintln(writer, "----------\t-----------")
+	fmt.Fprintln(writer, "--------\t-----------")
 	for _, v := range aggregateJobInfo {
 		successRate := int32(0)
 		if v.SuccessCount+v.FailureCount > 0 {
@@ -202,7 +224,7 @@ func getMovingAverage(source []float64, numPoints int) []float64 {
 	}
 	LogDebug(fmt.Sprintf("Size: %d", sourceNumOfPoints-(numPoints-1)))
 	target := make([]float64, sourceNumOfPoints-(numPoints-1))
-	for i, _ := range target {
+	for i := range target {
 		target[i] = sum(source[i:i+numPoints]) / float64(numPoints)
 		LogDebug(fmt.Sprintf("Average from %d to %d: %f", i, i+numPoints, target[i]))
 	}
