@@ -79,44 +79,52 @@ func main() {
 
 	citool.SetDebugMode(*debugMode)
 	if *mode == "analyze" {
-		files := strings.Split(*inputFiles, ",")
-		// Treat non-positional args as input files as well
-		files = append(files, flag.Args()...)
-		jobResults := getCircleCiBuildResults(&files)
-		filterParams := citool.FilterParams{
-			Username:       username,
-			RepositoryName: repositoryName,
-			BranchName:     branchName,
-			JobName:        jobname,
-			JobStatus:      jobStatus}
-		filterParams.FilterData(&jobResults)
-		analyzeParams := citool.AnalyzeParams{
-			PrintJobSuccessRate:         *printJobSuccessRate,
-			PrintJobDurationInAggregate: *printJobDuration,
-			PrintJobDurationTimeSeries:  *printJobDurationTimeSeries}
-		citool.PrintJobStats(jobResults, analyzeParams)
+		analyze()
 	} else if *mode == "download" {
-		var jobStatusType *citool.JobStatusFilterTypes = nil
-		if !citool.IsEmpty(jobStatus) {
-			tmp := citool.JobStatusFilterTypes(citool.GetJobStatusFilterOrFail(*jobStatus))
-			jobStatusType = &tmp
-		}
-		downloadParams := citool.DownloadParams{
-			CircleToken:     circleCiToken,
-			VcsType:         vcsType,
-			Username:        username,
-			RepositoryName:  repositoryName,
-			BranchName:      branchName,
-			Start:           *downloadStartOffset,
-			Limit:           *downloadLimit,
-			DownloadDirPath: *downloadDirPath,
-			JobStatus:       jobStatusType}
-		citool.DownloadCircleCIBuildResults(downloadParams)
+		download()
 	} else if *mode == "version" {
 		fmt.Printf("%s\n", versionString)
 	} else {
 		panic(fmt.Sprintf("Unexpected mode \"%s\"", *mode))
 	}
+}
+
+func analyze() {
+	files := strings.Split(*inputFiles, ",")
+	// Treat non-positional args as input files as well
+	files = append(files, flag.Args()...)
+	jobResults := getCircleCiBuildResults(&files)
+	filterParams := citool.FilterParams{
+		Username:       username,
+		RepositoryName: repositoryName,
+		BranchName:     branchName,
+		JobName:        jobname,
+		JobStatus:      jobStatus}
+	filterParams.FilterData(&jobResults)
+	analyzeParams := citool.AnalyzeParams{
+		PrintJobSuccessRate:         *printJobSuccessRate,
+		PrintJobDurationInAggregate: *printJobDuration,
+		PrintJobDurationTimeSeries:  *printJobDurationTimeSeries}
+	citool.PrintJobStats(jobResults, analyzeParams)
+}
+
+func download() {
+	var jobStatusType *citool.JobStatusFilterTypes = nil
+	if !citool.IsEmpty(jobStatus) {
+		tmp := citool.JobStatusFilterTypes(citool.GetJobStatusFilterOrFail(*jobStatus))
+		jobStatusType = &tmp
+	}
+	downloadParams := citool.DownloadParams{
+		CircleToken:     circleCiToken,
+		VcsType:         vcsType,
+		Username:        username,
+		RepositoryName:  repositoryName,
+		BranchName:      branchName,
+		Start:           *downloadStartOffset,
+		Limit:           *downloadLimit,
+		DownloadDirPath: *downloadDirPath,
+		JobStatus:       jobStatusType}
+	citool.DownloadCircleCIBuildResults(downloadParams)
 }
 
 func getCircleCiBuildResults(files *[]string) []citool.CircleCiBuildResult {
