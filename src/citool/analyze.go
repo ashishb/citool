@@ -141,6 +141,10 @@ type StartTimeAndDurationPair struct {
 	Duration  time.Duration // in nanoseconds
 }
 
+const avgRate = 10
+const graphHeight = 20 // lines
+const graphWidth = 100 // characters
+
 func printTimeSeriesData(results []CircleCiBuildResult) {
 	jobDurationsInSeconds := make(map[string][]StartTimeAndDurationPair, 0)
 	for _, result := range results {
@@ -163,13 +167,15 @@ func printTimeSeriesData(results []CircleCiBuildResult) {
 			// chronological order
 			return value[i].StartTime.Sub(value[j].StartTime).Seconds() < 0
 		})
+		// Get the durations from the chronologically sorted array.
 		durations := make([]float64, len(value))
 		for i, value := range value {
 			durations[i] = value.Duration.Seconds()
 		}
+		durations = getMovingAverage(durations, avgRate)
 		fmt.Printf("\nJob name: %s (%d data points)\n\n", key, len(durations))
 		graph := asciigraph.Plot(durations,
-			asciigraph.Height(10), asciigraph.Width(100))
+			asciigraph.Height(graphHeight), asciigraph.Width(graphWidth))
 		fmt.Println(graph)
 	}
 }
@@ -186,4 +192,27 @@ func getJobDuration(buildResult CircleCiBuildResult) time.Duration {
 	startTime := getTime(buildResult.StartTime)
 	endTime := getTime(buildResult.EndTime)
 	return endTime.Sub(startTime)
+}
+
+func getMovingAverage(source []float64, numPoints int) []float64 {
+	sourceNumOfPoints := len(source)
+	if sourceNumOfPoints < numPoints {
+		panic("This method should not have been called since we have less than " +
+			string(numPoints) + " of points")
+	}
+	LogDebug(fmt.Sprintf("Size: %d", sourceNumOfPoints-(numPoints-1)))
+	target := make([]float64, sourceNumOfPoints-(numPoints-1))
+	for i, _ := range target {
+		target[i] = sum(source[i:i+numPoints]) / float64(numPoints)
+		LogDebug(fmt.Sprintf("Average from %d to %d: %f", i, i+numPoints, target[i]))
+	}
+	return target
+}
+
+func sum(arr []float64) float64 {
+	result := float64(0)
+	for _, v := range arr {
+		result += v
+	}
+	return result
 }
