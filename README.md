@@ -5,6 +5,7 @@ A tool to download and analyze Circle CI jobs data.
 ## CLI arguments
 
 ```
+Usage of ./citool:
   -branch string
     	Optional branch name to filter download/analysis on
   -circle-token string
@@ -22,13 +23,15 @@ A tool to download and analyze Circle CI jobs data.
   -limit int
     	Circle CI build results download limit
   -mode string
-    	Mode - "download" or "analyze" or "version" (default "analyze")
+    	Mode - "download" or "analyze"
   -offset int
     	Circle CI build results download start offset
   -print-duration
     	Print per-job average duration. Analyze mode only. (default true)
   -print-duration-graph
     	Print per-job duration time series graph (yes, a graph). Analyze mode only. (default true)
+  -print-success-graph
+    	Print per-job success graph (yes, a graph). Analyze mode only. (default true)
   -print-success-rate
     	Print per-job aggregated success rate. Analyze mode only. (default true)
   -reponame string
@@ -37,7 +40,9 @@ A tool to download and analyze Circle CI jobs data.
     	Optional username to filter downloads/analysis on
   -vcsType string
     	Name of the VCS system - See https://circleci.com/docs/api/#version-control-systems-vcs-type. Download mode only. (default "github")
- ```
+  -version
+    	Prints version of this tool
+```
 
 
 ## Examples
