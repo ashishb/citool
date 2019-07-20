@@ -11,5 +11,9 @@ clean:
 format:
 	gofmt -w -s src/*.go src/citool/*
 
-test: 
+lint:
+	GO111MODULE=on go vet src/*.go
+	GO111MODULE=on go vet src/citool/*
+	golint -set_exit_status src/ src/citool/
+test:
 	./test.sh
