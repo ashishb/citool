@@ -31,12 +31,12 @@ var circleCiToken = flag.String("circle-token",
 	"Circle CI access token. Download mode only.")
 
 var downloadStartOffset = flag.Int("offset",
-	0,
-	"Circle CI build results download start offset")
+	defaultStartOffset,
+	fmt.Sprintf("Circle CI build results download start offset (Default: %d)", defaultStartOffset))
 
 var downloadLimit = flag.Int("limit",
-	0,
-	"Circle CI build results download limit")
+	defaultDownloadLimit,
+	fmt.Sprintf("Circle CI build results download limit (Default: %d)", defaultDownloadLimit))
 
 var vcsType = flag.String("vcsType",
 	"github",
@@ -72,7 +72,7 @@ var printJobDurationTimeSeries = flag.Bool("print-duration-graph",
 	"Print per-job duration time series graph (yes, a graph). Analyze mode only.")
 
 var printJobSuccessTimeSeries = flag.Bool("print-success-graph",
-	true,
+	false,
 	"Print per-job success graph (yes, a graph). Analyze mode only.")
 
 var debugMode = flag.Bool("debug",
@@ -85,6 +85,8 @@ var version = flag.Bool("version",
 
 const versionString = "0.1.0"
 const defaultDownloadDir = "./circleci_data"
+const defaultStartOffset = 0
+const defaultDownloadLimit = 100
 
 func main() {
 	flag.Parse()
@@ -98,7 +100,7 @@ func main() {
 	} else if *mode == "download" {
 		download()
 	} else {
-		fmt.Printf("Unexpected mode: \"%s\"\n", *mode)
+		flag.Usage()
 		os.Exit(1)
 	}
 }
