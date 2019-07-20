@@ -4,6 +4,7 @@ import (
 	"robpike.io/filter"
 )
 
+// FilterParams are parameters used for filtering results at the time of analysis.
 type FilterParams struct {
 	Username       *string
 	RepositoryName *string
@@ -14,6 +15,7 @@ type FilterParams struct {
 	Limit          int
 }
 
+// FilterData filters the results field in-place using filterParams.
 func (filterParams FilterParams) FilterData(results *[]CircleCiBuildResult) {
 	username := filterParams.Username
 	repositoryName := filterParams.RepositoryName

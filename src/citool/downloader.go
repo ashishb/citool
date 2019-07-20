@@ -60,7 +60,7 @@ func validate(params DownloadParams) {
 	repositoryNameProvided := !IsEmpty(params.RepositoryName)
 	if userNameProvided != repositoryNameProvided {
 		panic(
-			fmt.Sprintf("Only one of the username(\"%s\") or respository name(\"%s\") is provided",
+			fmt.Sprintf("Only one of the username(\"%s\") or repository name(\"%s\") is provided",
 				*params.Username,
 				*params.RepositoryName))
 	}
@@ -85,16 +85,16 @@ func IsEmpty(value *string) bool {
 // Works - "https://circleci.com/api/v1.1/project/github/celo-org/celo-monpo?circle-token=${TOKEN}&limit=1&offset=5&filter=running&shallow=true"
 // Fails - "https://circleci.com/api/v1.1/project/github/celo-org/celo-monorepo/tree/master?circle-token=25b7d2f03ad0a5c9cf2a2f4740211aaf3c4d59af&filter=running&limit=1&offset=5
 func downloadCircleCIBuildResults(params DownloadParams) {
-	var downloadUrl *url.URL
+	var downloadURL *url.URL
 	if IsEmpty(params.Username) {
-		downloadUrl = constructDownloadUrlForAllProjects(params)
+		downloadURL = constructDownloadURLForAllProjects(params)
 	} else {
-		downloadUrl = constructDownloadUrlForASpecificProject(params)
+		downloadURL = constructDownloadURLForASpecificProject(params)
 	}
-	LogDebug(fmt.Sprintf("Downloading from %s", downloadUrl.String()))
-	data, err := getBody(*downloadUrl)
+	LogDebug(fmt.Sprintf("Downloading from %s", downloadURL.String()))
+	data, err := getBody(*downloadURL)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to download from %s, error: %s", downloadUrl, err))
+		panic(fmt.Sprintf("Failed to download from %s, error: %s", downloadURL, err))
 	}
 	outputFilename := getOutputFilename(params.DownloadDirPath, params.Start, params.Limit)
 	err2 := writeToFile(outputFilename, data)
@@ -106,31 +106,31 @@ func downloadCircleCIBuildResults(params DownloadParams) {
 }
 
 // https://circleci.com/docs/api/#recent-builds-across-all-projects
-func constructDownloadUrlForAllProjects(params DownloadParams) *url.URL {
-	baseUrl := "https://circleci.com/api/v1.1/recent-builds"
+func constructDownloadURLForAllProjects(params DownloadParams) *url.URL {
+	baseURL := "https://circleci.com/api/v1.1/recent-builds"
 	v := url.Values{}
 	v.Set("circle-token", *params.CircleToken)
 	v.Set("offset", strconv.Itoa(params.Start))
 	v.Set("limit", strconv.Itoa(params.Limit))
 	v.Set("shallow", "true")
 	queryString := v.Encode()
-	downloadUrlString := fmt.Sprintf("%s?%s", baseUrl, queryString)
-	downloadUrl, err := url.Parse(downloadUrlString)
+	downloadURLString := fmt.Sprintf("%s?%s", baseURL, queryString)
+	downloadURL, err := url.Parse(downloadURLString)
 	if err != nil {
-		panic("Failed parse url " + downloadUrlString)
+		panic("Failed parse url " + downloadURLString)
 	}
-	return downloadUrl
+	return downloadURL
 }
 
 // https://circleci.com/docs/api/#recent-builds-for-a-single-project
-func constructDownloadUrlForASpecificProject(params DownloadParams) *url.URL {
-	baseUrl := fmt.Sprintf(
+func constructDownloadURLForASpecificProject(params DownloadParams) *url.URL {
+	baseURL := fmt.Sprintf(
 		"https://circleci.com/api/v1.1/project/%s/%s/%s",
 		url.PathEscape(*params.VcsType),
 		url.PathEscape(*params.Username),
 		url.PathEscape(*params.RepositoryName))
 	if len(*params.BranchName) > 0 {
-		baseUrl = fmt.Sprintf("%s/tree/%s", baseUrl, url.PathEscape(*params.BranchName))
+		baseURL = fmt.Sprintf("%s/tree/%s", baseURL, url.PathEscape(*params.BranchName))
 	}
 	v := url.Values{}
 	v.Set("circle-token", *params.CircleToken)
@@ -141,12 +141,12 @@ func constructDownloadUrlForASpecificProject(params DownloadParams) *url.URL {
 		v.Set("filter", string(*params.JobStatus))
 	}
 	queryString := v.Encode()
-	downloadUrlString := fmt.Sprintf("%s?%s", baseUrl, queryString)
-	downloadUrl, err := url.Parse(downloadUrlString)
+	downloadURLString := fmt.Sprintf("%s?%s", baseURL, queryString)
+	downloadURL, err := url.Parse(downloadURLString)
 	if err != nil {
-		panic("Failed parse url " + downloadUrlString)
+		panic("Failed parse url " + downloadURLString)
 	}
-	return downloadUrl
+	return downloadURL
 }
 
 func writeToFile(filename string, contents []byte) error {
@@ -156,7 +156,7 @@ func writeToFile(filename string, contents []byte) error {
 }
 
 func maybeCreateDirectory(dirpath string) bool {
-	if len(dirpath) == 0 || dirpath == ".." && dirpath == string(filepath.Separator) {
+	if len(dirpath) == 0 || dirpath == ".." || dirpath == string(filepath.Separator) {
 		return false
 	}
 	return os.Mkdir(dirpath, os.ModePerm) == nil

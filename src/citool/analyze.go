@@ -26,7 +26,7 @@ type CircleCiBuildResult struct {
 	Workflows   CircleCiBuildWorkflow `json:"workflows"`
 }
 
-func GetJson(filename string) []CircleCiBuildResult {
+func GetJSON(filename string) []CircleCiBuildResult {
 	contents, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to read file \"%s\"", filename))
@@ -39,7 +39,7 @@ func GetJson(filename string) []CircleCiBuildResult {
 	return circleCiBuildResults
 }
 
-// Aggregated job information
+// AggregateJobInfo is aggregated job status information from the individual jobs
 type AggregateJobInfo struct {
 	JobName            string
 	Frequency          int
@@ -70,14 +70,14 @@ func PrintJobStats(results []CircleCiBuildResult, params AnalyzeParams) {
 		if !present {
 			existingAggregateJobInfo = &AggregateJobInfo{jobName, 0, time.Duration(0), 0, 0}
 		}
-		existingAggregateJobInfo.Frequency += 1
+		existingAggregateJobInfo.Frequency++
 		existingAggregateJobInfo.CumulativeDuration += duration
 		aggregateJobInfo[jobName] = existingAggregateJobInfo
 		aggregateJobInfo[jobName].Frequency = aggregateJobInfo[jobName].Frequency + 1
 		if status == JobStatusSuccess {
-			existingAggregateJobInfo.SuccessCount += 1
+			existingAggregateJobInfo.SuccessCount++
 		} else if status == JobStatusFailed {
-			existingAggregateJobInfo.FailureCount += 1
+			existingAggregateJobInfo.FailureCount++
 		} else {
 			panic("Unexpected status: " + status)
 		}
@@ -138,10 +138,9 @@ func printJobSuccessRate(aggregateJobInfo []*AggregateJobInfo) {
 			aggregateJobInfo[j].SuccessCount*aggregateJobInfo[i].FailureCount)
 		if comparison != 0 {
 			return comparison < 0
-		} else {
-			// If the jobs have the same success rate then sort on the basis of name to have stable outcome
-			return aggregateJobInfo[i].JobName > aggregateJobInfo[j].JobName
 		}
+		// If the jobs have the same success rate then sort on the basis of name to have stable outcome
+		return aggregateJobInfo[i].JobName > aggregateJobInfo[j].JobName
 	})
 
 	writer := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)

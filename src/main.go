@@ -122,7 +122,7 @@ func analyze() {
 }
 
 func download() {
-	var jobStatusType *citool.JobStatusFilterTypes = nil
+	var jobStatusType *citool.JobStatusFilterTypes
 	if !citool.IsEmpty(jobStatus) {
 		tmp := citool.JobStatusFilterTypes(citool.GetJobStatusFilterOrFail(*jobStatus))
 		jobStatusType = &tmp
@@ -188,7 +188,7 @@ func getCircleCiBuildResults(files *[]string) []citool.CircleCiBuildResult {
 		if len(file) == 0 {
 			continue
 		}
-		tmp := citool.GetJson(file)
+		tmp := citool.GetJSON(file)
 		data = append(data, tmp...)
 	}
 	// To add an empty line after debug logging.
