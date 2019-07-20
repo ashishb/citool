@@ -12,6 +12,7 @@ format:
 	gofmt -w -s src/*.go src/citool/*
 
 lint:
+	GO111MODULE=on go mod tidy
 	GO111MODULE=on go vet src/*.go
 	GO111MODULE=on go vet src/citool/*
 	golint -set_exit_status src/ src/citool/
