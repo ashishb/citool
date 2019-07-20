@@ -1,5 +1,6 @@
 package citool
 
+// JobStatusFilterTypes enum values are the job status values used for filtering.
 type JobStatusFilterTypes string
 
 // Only for filtering
@@ -11,6 +12,8 @@ const (
 	JobRunning    JobStatusFilterTypes = "running"
 )
 
+// GetJobStatusFilterOrFail converts the string value to enum type.
+// Panics if the string value does not match any enum value.
 func GetJobStatusFilterOrFail(status string) JobStatusFilterTypes {
 	switch status {
 	case string(JobCompleted):
@@ -26,9 +29,10 @@ func GetJobStatusFilterOrFail(status string) JobStatusFilterTypes {
 	}
 }
 
+// JobStatusType represents the actual status of the job.
+// These values are valid only for the status field inside the job result JSON structure
 type JobStatusType string
 
-// Only for the status field inside the job result JSON structure
 // :retried, :canceled, :infrastructure_fail, :timedout, :not_run, :running,
 // :failed, :queued, :scheduled, :not_running, :no_tests, :fixed, :success
 const (

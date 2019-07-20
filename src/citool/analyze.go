@@ -11,27 +11,30 @@ import (
 	"time"
 )
 
-type CircleCiBuildWorkflow struct {
+// CircleCiJobWorkflow encapsulates the relevant portions of "workflows" filed in a Circle CI build result.
+type CircleCiJobWorkflow struct {
 	JobName string `json:"job_name"`
 }
 
-type CircleCiBuildResult struct {
-	Username    string                `json:"username"`
-	Reponame    string                `json:"reponame"`
-	Branch      string                `json:"branch"`
-	BuildNumber int                   `json:"build_num"`
-	Status      JobStatusType         `json:"status"`
-	EndTime     string                `json:"stop_time"`
-	StartTime   string                `json:"start_time"`
-	Workflows   CircleCiBuildWorkflow `json:"workflows"`
+// CircleCiJobResult encapsulates the relevant portions of a single Circle CI build result.
+type CircleCiJobResult struct {
+	Username    string              `json:"username"`
+	Reponame    string              `json:"reponame"`
+	Branch      string              `json:"branch"`
+	BuildNumber int                 `json:"build_num"`
+	Status      JobStatusType       `json:"status"`
+	EndTime     string              `json:"stop_time"`
+	StartTime   string              `json:"start_time"`
+	Workflows   CircleCiJobWorkflow `json:"workflows"`
 }
 
-func GetJSON(filename string) []CircleCiBuildResult {
+// GetCircleCIJobResults reads filename and returns the results as an array of Circle CI build results.
+func GetCircleCIJobResults(filename string) []CircleCiJobResult {
 	contents, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to read file \"%s\"", filename))
 	}
-	var circleCiBuildResults []CircleCiBuildResult
+	var circleCiBuildResults []CircleCiJobResult
 	err2 := json.Unmarshal(contents, &circleCiBuildResults)
 	if err2 != nil {
 		panic("Failed to extract JSON" + err2.Error())
@@ -48,6 +51,7 @@ type AggregateJobInfo struct {
 	FailureCount       int32
 }
 
+// AnalyzeParams are used for configuring the analysis mode settings.
 type AnalyzeParams struct {
 	PrintJobSuccessRate         bool
 	PrintJobDurationInAggregate bool
@@ -55,7 +59,8 @@ type AnalyzeParams struct {
 	PrintJobSuccessTimeSeries   bool
 }
 
-func PrintJobStats(results []CircleCiBuildResult, params AnalyzeParams) {
+// PrintJobStats prints the aggregated job statistics from results.
+func PrintJobStats(results []CircleCiJobResult, params AnalyzeParams) {
 	fmt.Printf("Number of job results: %d\n", len(results))
 	aggregateJobInfo := make(map[string]*AggregateJobInfo, 0)
 	for _, result := range results {
@@ -161,7 +166,7 @@ func printJobSuccessRate(aggregateJobInfo []*AggregateJobInfo) {
 	writer.Flush()
 }
 
-type StartTimeAndDurationPair struct {
+type startTimeAndDurationPair struct {
 	StartTime time.Time     // in what units?
 	Duration  time.Duration // in nanoseconds
 }
@@ -170,9 +175,9 @@ const avgRate = 10
 const maxGraphHeight = 20 // lines
 const maxGraphWidth = 100 // characters
 
-func printTimeSeriesDurationData(results []CircleCiBuildResult) {
+func printTimeSeriesDurationData(results []CircleCiJobResult) {
 	fmt.Printf("Printing job duration graphs\n")
-	jobDurationsInSeconds := make(map[string][]StartTimeAndDurationPair, 0)
+	jobDurationsInSeconds := make(map[string][]startTimeAndDurationPair, 0)
 	for _, result := range results {
 		// Only consider successful jobs to avoid skew due to failed job which might fail early on.
 		if result.Status != JobStatusSuccess {
@@ -181,7 +186,7 @@ func printTimeSeriesDurationData(results []CircleCiBuildResult) {
 		jobName := result.Workflows.JobName
 		startTime := result.StartTime
 		duration := getJobDuration(result)
-		startTimeAndDurationPair := StartTimeAndDurationPair{
+		startTimeAndDurationPair := startTimeAndDurationPair{
 			StartTime: getTime(startTime),
 			Duration:  duration}
 		jobDurationsInSeconds[jobName] = append(
@@ -210,14 +215,14 @@ func printTimeSeriesDurationData(results []CircleCiBuildResult) {
 	}
 }
 
-type StartTimeAndJobStatusPair struct {
+type startTimeAndJobStatusPair struct {
 	StartTime time.Time // in what units?
 	JobStatus JobStatusType
 }
 
-func printTimeSeriesSuccessData(results []CircleCiBuildResult) {
+func printTimeSeriesSuccessData(results []CircleCiJobResult) {
 	fmt.Printf("Printing job success graphs\n")
-	jobSucess := make(map[string][]StartTimeAndJobStatusPair, 0)
+	jobSucess := make(map[string][]startTimeAndJobStatusPair, 0)
 	for _, result := range results {
 		// Only consider successful and failed jobs to avoid skew due to failed job which might fail early on.
 		if result.Status != JobStatusSuccess && result.Status != JobStatusFailed {
@@ -226,7 +231,7 @@ func printTimeSeriesSuccessData(results []CircleCiBuildResult) {
 		jobName := result.Workflows.JobName
 		jobStatus := result.Status
 		startTime := result.StartTime
-		startTimeAndJobStatusPair := StartTimeAndJobStatusPair{
+		startTimeAndJobStatusPair := startTimeAndJobStatusPair{
 			StartTime: getTime(startTime),
 			JobStatus: jobStatus}
 		jobSucess[jobName] = append(
@@ -267,7 +272,7 @@ func getTime(timeString string) time.Time {
 	return parsedTime
 }
 
-func getJobDuration(buildResult CircleCiBuildResult) time.Duration {
+func getJobDuration(buildResult CircleCiJobResult) time.Duration {
 	startTime := getTime(buildResult.StartTime)
 	endTime := getTime(buildResult.EndTime)
 	return endTime.Sub(startTime)

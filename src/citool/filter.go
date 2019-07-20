@@ -16,7 +16,7 @@ type FilterParams struct {
 }
 
 // FilterData filters the results field in-place using filterParams.
-func (filterParams FilterParams) FilterData(results *[]CircleCiBuildResult) {
+func (filterParams FilterParams) FilterData(results *[]CircleCiJobResult) {
 	username := filterParams.Username
 	repositoryName := filterParams.RepositoryName
 	branchName := filterParams.BranchName
@@ -42,7 +42,7 @@ func (filterParams FilterParams) FilterData(results *[]CircleCiBuildResult) {
 	filter.ChooseInPlace(results, filterParams.filterRule)
 }
 
-func (filterParams FilterParams) filterRule(result CircleCiBuildResult) bool {
+func (filterParams FilterParams) filterRule(result CircleCiJobResult) bool {
 	username := filterParams.Username
 	repositoryName := filterParams.RepositoryName
 	branchName := filterParams.BranchName

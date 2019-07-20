@@ -137,7 +137,7 @@ func download() {
 		Limit:           *downloadLimit,
 		DownloadDirPath: *downloadDirPath,
 		JobStatus:       jobStatusType}
-	citool.DownloadCircleCIBuildResults(downloadParams)
+	citool.DownloadCircleCIJobResults(downloadParams)
 }
 
 func getInputFiles() []string {
@@ -180,15 +180,15 @@ func dirExists(dirname string) bool {
 	return fileInfo.IsDir()
 }
 
-func getCircleCiBuildResults(files *[]string) []citool.CircleCiBuildResult {
-	data := make([]citool.CircleCiBuildResult, 0)
+func getCircleCiBuildResults(files *[]string) []citool.CircleCiJobResult {
+	data := make([]citool.CircleCiJobResult, 0)
 	for _, file := range *files {
 		citool.LogDebug(fmt.Sprintf("Input file: \"%s\"", file))
 		// Ignore empty file names
 		if len(file) == 0 {
 			continue
 		}
-		tmp := citool.GetJSON(file)
+		tmp := citool.GetCircleCIJobResults(file)
 		data = append(data, tmp...)
 	}
 	// To add an empty line after debug logging.

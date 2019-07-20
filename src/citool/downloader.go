@@ -15,6 +15,7 @@ import (
 const maxDownloadCircleCiLimit = 100
 const maxFetchRetryCount = 5
 
+// DownloadParams are used for configuring parameters for downloading data from Circle CI.
 type DownloadParams struct {
 	CircleToken     *string
 	VcsType         *string
@@ -27,7 +28,8 @@ type DownloadParams struct {
 	JobStatus       *JobStatusFilterTypes
 }
 
-func DownloadCircleCIBuildResults(params DownloadParams) {
+// DownloadCircleCIJobResults performs the downloading of the build results.
+func DownloadCircleCIJobResults(params DownloadParams) {
 	validate(params)
 
 	start := params.Start
@@ -76,10 +78,6 @@ func validate(params DownloadParams) {
 	if params.Limit <= 0 {
 		panic(fmt.Sprintf("limit must be > 0, it is %d", params.Limit))
 	}
-}
-
-func IsEmpty(value *string) bool {
-	return value == nil || len(*value) == 0
 }
 
 // Works - "https://circleci.com/api/v1.1/project/github/celo-org/celo-monpo?circle-token=${TOKEN}&limit=1&offset=5&filter=running&shallow=true"
