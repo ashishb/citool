@@ -4,7 +4,9 @@ import (
 	"ci-analysis-tool/src/citool"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -54,7 +56,7 @@ var branchName = flag.String("branch",
 	"Optional branch name to filter download/analysis on")
 
 var downloadDirPath = flag.String("download-dir",
-	"./circleci_data",
+	defaultDownloadDir,
 	"Directory to download Circle CI data to")
 
 var printJobSuccessRate = flag.Bool("print-success-rate",
@@ -82,6 +84,7 @@ var version = flag.Bool("version",
 	"Prints version of this tool")
 
 const versionString = "0.1.0"
+const defaultDownloadDir = "./circleci_data"
 
 func main() {
 	flag.Parse()
@@ -101,9 +104,7 @@ func main() {
 }
 
 func analyze() {
-	files := strings.Split(*inputFiles, ",")
-	// Treat non-positional args as input files as well
-	files = append(files, flag.Args()...)
+	files := getInputFiles()
 	jobResults := getCircleCiBuildResults(&files)
 	filterParams := citool.FilterParams{
 		Username:       username,
@@ -139,8 +140,47 @@ func download() {
 	citool.DownloadCircleCIBuildResults(downloadParams)
 }
 
+func getInputFiles() []string {
+	files := make([]string, 0)
+	if len(*inputFiles) > 0 {
+		files = append(files, strings.Split(*inputFiles, ",")...)
+	}
+	if len(flag.Args()) > 0 {
+		// Treat non-positional args as input files as well
+		files = append(files, flag.Args()...)
+	}
+	// Get default files
+	if len(files) == 0 && dirExists(defaultDownloadDir) {
+		fileInfos, err := ioutil.ReadDir(defaultDownloadDir)
+		if err != nil {
+			panic(err)
+		}
+		for _, fileInfo := range fileInfos {
+			if !fileInfo.IsDir() && strings.HasSuffix(fileInfo.Name(), ".json") {
+				filePath := filepath.Join(defaultDownloadDir, fileInfo.Name())
+				citool.LogDebug(fmt.Sprintf("Found default file: %s", filePath))
+				files = append(files, filePath)
+			}
+		}
+	}
+	citool.LogDebug(fmt.Sprintf("Files are %d\n", len(files)))
+
+	if len(files) == 0 {
+		fmt.Printf("No input files provided\n")
+		os.Exit(1)
+	}
+	return files
+}
+
+func dirExists(dirname string) bool {
+	fileInfo, err := os.Stat(dirname)
+	if err != nil {
+		return false
+	}
+	return fileInfo.IsDir()
+}
+
 func getCircleCiBuildResults(files *[]string) []citool.CircleCiBuildResult {
-	foundAtleastOneFile := false
 	data := make([]citool.CircleCiBuildResult, 0)
 	for _, file := range *files {
 		citool.LogDebug(fmt.Sprintf("Input file: \"%s\"", file))
@@ -149,14 +189,7 @@ func getCircleCiBuildResults(files *[]string) []citool.CircleCiBuildResult {
 			continue
 		}
 		tmp := citool.GetJson(file)
-		if len(data) > 0 {
-			foundAtleastOneFile = true
-		}
 		data = append(data, tmp...)
-	}
-	if !foundAtleastOneFile {
-		fmt.Printf("No input files provided\n")
-		os.Exit(1)
 	}
 	// To add an empty line after debug logging.
 	citool.LogDebug("")
