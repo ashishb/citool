@@ -1,7 +1,7 @@
 .PHONY: clean
 .PHONY: test
 
-build: 
+citool:
 	GO111MODULE=on go build -o citool src/main.go
 
 clean:
