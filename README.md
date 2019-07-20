@@ -127,4 +127,7 @@ $ ./citool --version
 
 ### Development
 
-1. `make build` - to build
+1. `make citool` - to build
+2. `make test` - to test
+3. `make lint` - to vet and lint
+4. `make format` - to format using gofmt
