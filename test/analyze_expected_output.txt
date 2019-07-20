@@ -1,13 +1,6 @@
 Number of job results: 999
 Job name                        Success Rate
 --------                        -----------
-web                             48/58 (82%)
-verification-pool-integration   49/58 (84%)
-build-all-packages              51/58 (87%)
-sdk-test                        52/58 (89%)
-deploy-blockchain-api           55/58 (94%)
-end-to-end-geth-transfer-test   55/56 (98%)
-mobile-android-integration      57/58 (98%)
 verification-pool-api           58/58 (100%)
 protocol-test                   56/56 (100%)
 mobile-test-build-app           58/58 (100%)
@@ -18,6 +11,13 @@ general-test                    58/58 (100%)
 end-to-end-geth-sync-test       56/56 (100%)
 end-to-end-geth-governance-test 58/58 (100%)
 deploy-notification-service     58/58 (100%)
+mobile-android-integration      57/58 (98%)
+end-to-end-geth-transfer-test   55/56 (98%)
+deploy-blockchain-api           55/58 (94%)
+sdk-test                        52/58 (89%)
+build-all-packages              51/58 (87%)
+verification-pool-integration   49/58 (84%)
+web                             48/58 (82%)
 
 Job name                        Average job duration
 ----------                      --------------------
