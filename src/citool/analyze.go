@@ -138,11 +138,11 @@ func printJobDuration(aggregateJobInfo []*AggregateJobInfo) {
 
 func printJobSuccessRate(aggregateJobInfo []*AggregateJobInfo) {
 	sort.Slice(aggregateJobInfo, func(i, j int) bool {
-		// Highest failure rate first.
 		comparison := (aggregateJobInfo[i].SuccessCount*aggregateJobInfo[j].FailureCount -
 			aggregateJobInfo[j].SuccessCount*aggregateJobInfo[i].FailureCount)
 		if comparison != 0 {
-			return comparison < 0
+			// Lowest failure rate first.
+			return comparison > 0
 		}
 		// If the jobs have the same success rate then sort on the basis of name to have stable outcome
 		return aggregateJobInfo[i].JobName > aggregateJobInfo[j].JobName
