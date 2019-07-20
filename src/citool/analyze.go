@@ -207,9 +207,7 @@ func printTimeSeriesDurationData(results []CircleCiBuildResult) {
 		if graphWidth > maxGraphWidth {
 			graphWidth = maxGraphWidth
 		}
-		graph := asciigraph.Plot(durations,
-			asciigraph.Height(maxGraphHeight), asciigraph.Width(graphWidth))
-		fmt.Println(graph)
+		printGraph(durations, graphWidth, maxGraphHeight)
 	}
 }
 
@@ -258,9 +256,7 @@ func printTimeSeriesSuccessData(results []CircleCiBuildResult) {
 		if graphWidth > maxGraphWidth {
 			graphWidth = maxGraphWidth
 		}
-		graph := asciigraph.Plot(jobStatus,
-			asciigraph.Height(maxGraphHeight), asciigraph.Width(graphWidth))
-		fmt.Println(graph)
+		printGraph(jobStatus, graphWidth, maxGraphHeight)
 	}
 }
 
@@ -298,4 +294,12 @@ func sum(arr []float64) float64 {
 		result += v
 	}
 	return result
+}
+
+func printGraph(values []float64, graphWidth int, graphHeight int) {
+	LogDebug(fmt.Sprintf("Print graph(height=%d, width=%d), %d values\n", graphHeight, graphWidth, len(values)))
+	graph := asciigraph.Plot(values,
+		asciigraph.Height(graphHeight),
+		asciigraph.Width(graphWidth))
+	fmt.Println(graph)
 }
