@@ -1,0 +1,15 @@
+language: go
+
+go:
+  # Try multiple golang versions
+  - 1.x
+  - 1.11.x
+  - 1.12.x
+  - master
+
+go_import_path: github.com/ashishb/ci-analysis-tool
+
+script: |
+  make citool
+  make lint
+  make test
