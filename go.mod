@@ -1,4 +1,4 @@
-module ci-analysis-tool
+module github.com/ashishb/ci-analysis-tool
 
 require (
 	github.com/guptarohit/asciigraph v0.4.2-0.20190112130928-1bc9b2452856
