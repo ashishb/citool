@@ -1,9 +1,9 @@
 package main
 
 import (
-	"ci-analysis-tool/src/citool"
 	"flag"
 	"fmt"
+	"github.com/ashishb/ci-analysis-tool/src/citool"
 	"io/ioutil"
 	"os"
 	"path/filepath"
