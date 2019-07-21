@@ -1,17 +1,29 @@
+# use the latest ubuntu environment (18.04) available on travis
+dist: xenial
+
 language: go
 
 go:
   # Try multiple golang versions
+  # Don't try "master" version of Go Lang since it is unnecessarily slow.
   - 1.x
   - 1.11.x
   - 1.12.x
-  - master
+
+# Force-enable Go modules. Also force go to use the code in vendor/
+# These will both be unnecessary when Go 1.13 lands.
+env:
+  - GO111MODULE=on
+
+# Only clone the most recent commit.
+git:
+  depth: 1
 
 go_import_path: github.com/ashishb/ci-analysis-tool
 
-script: |
-  set -euo pipefail
-  make citool
-  GO111MODULE=on go get -u golang.org/x/lint/golint
-  make lint
-  make test
+before_script: go get -u golang.org/x/lint/golint
+
+script:
+  - make citool
+  - make lint
+  - make test
