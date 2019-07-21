@@ -1,12 +1,15 @@
 .PHONY: clean
 .PHONY: test
 
-citool:
-	GO111MODULE=on go build -o citool src/main.go
+SOURCES=src/main.go src/citool/$(wildcard *.go)
+EXECUTABLE=citool
+
+citool: $(SOURCES)
+	GO111MODULE=on go build -o $(EXECUTABLE) src/main.go
 
 clean:
 	GO111MODULE=on go clean src/main.go
-	rm citool
+	rm $(EXECUTABLE)
 
 format:
 	gofmt -w -s src/*.go src/citool/*
