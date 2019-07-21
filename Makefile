@@ -1,7 +1,7 @@
 .PHONY: clean
 .PHONY: test
 
-SOURCES=src/main.go src/citool/$(wildcard *.go)
+SOURCES=src/citool.go src/citool/$(wildcard *.go)
 EXECUTABLE=citool
 
 citool: $(SOURCES)
