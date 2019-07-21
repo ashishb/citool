@@ -10,6 +10,8 @@ go:
 go_import_path: github.com/ashishb/ci-analysis-tool
 
 script: |
+  set -euo pipefail
   make citool
+  go get -u golang.org/x/lint/golint
   make lint
   make test
