@@ -21,3 +21,9 @@ lint:
 	golint -set_exit_status src/ src/citool/
 test:
 	./test.sh
+
+all:
+	make clean
+	make
+	make lint
+	make test
