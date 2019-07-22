@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/ashishb/ci-analysis-tool/src/citool"
+	"github.com/ashishb/ci-analysis-tool/citool/src/citool"
 	"io/ioutil"
 	"os"
 	"path/filepath"

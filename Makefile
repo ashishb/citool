@@ -1,23 +1,23 @@
 .PHONY: clean
 .PHONY: test
 
-SOURCES=citool.go $(wildcard src/citool/*.go)
-EXECUTABLE=citool
+SOURCES=citool/main.go $(wildcard src/citool/*.go)
+EXECUTABLE=bin/citool
 
-citool: $(SOURCES)
-	GO111MODULE=on go build -o bin/$(EXECUTABLE) citool.go
+build: $(SOURCES)
+	GO111MODULE=on go build -o $(EXECUTABLE) citool/main.go
 
 clean:
-	GO111MODULE=on go clean citool.go
+	GO111MODULE=on go clean citool/main.go
 	rm -rf $(EXECUTABLE)
 
 format:
-	gofmt -w -s citool.go src/citool/*
+	gofmt -w -s citool/main.go citool/src/citool/*
 
 lint:
 	GO111MODULE=on go mod tidy
-	GO111MODULE=on go vet citool.go
-	GO111MODULE=on go vet src/citool/*
-	golint -set_exit_status src/ src/citool/
+	GO111MODULE=on go vet citool/main.go
+	GO111MODULE=on go vet citool/src/citool/*
+	golint -set_exit_status citool/src/citool/
 test:
 	./test.sh
