@@ -15,3 +15,4 @@
 
 # Default directory for temporary Circle CI data
 circleci_data
+bin/citool
