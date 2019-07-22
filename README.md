@@ -2,6 +2,10 @@
 
 A tool to download and analyze Circle CI jobs data.
 
+### Installations
+
+`go get -u github.com/ashishb/citool`
+
 ## CLI arguments
 
 ```
