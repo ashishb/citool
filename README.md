@@ -1,4 +1,4 @@
-# CI Analysis Tool ![License](https://img.shields.io/github/license/ashishb/citool.svg?style=flat) [![Go Report Card](https://goreportcard.com/badge/github.com/ashishb/citool)](https://goreportcard.com/report/github.com/ashishb/citool) [![Build Status](https://travis-ci.com/ashishb/citool.svg?branch=master)](https://travis-ci.com/ashishb/citool)
+# CI Analysis Tool [![Go Report Card](https://goreportcard.com/badge/github.com/ashishb/citool)](https://goreportcard.com/report/github.com/ashishb/citool) [![Build Status](https://travis-ci.com/ashishb/citool.svg?branch=master)](https://travis-ci.com/ashishb/citool)
 
 A tool to download and analyze Circle CI jobs data.
 
