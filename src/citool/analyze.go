@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/guptarohit/asciigraph"
-	"io/ioutil"
 	"os"
 	"sort"
 	"text/tabwriter"
@@ -30,7 +29,7 @@ type CircleCiJobResult struct {
 
 // GetCircleCIJobResults reads filename and returns the results as an array of Circle CI build results.
 func GetCircleCIJobResults(filename string) []CircleCiJobResult {
-	contents, err := ioutil.ReadFile(filename)
+	contents, err := os.ReadFile(filename)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to read file \"%s\"", filename))
 	}
@@ -130,7 +129,7 @@ func printJobDuration(aggregateJobInfo []*AggregateJobInfo) {
 		// We don't need accuracy below one second.
 		averageDuration = averageDuration.Round(time.Second)
 		//noinspection GoUnhandledErrorResult
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%v", v.JobName, averageDuration))
+		fmt.Fprintf(writer, "%s\t%v\n", v.JobName, averageDuration)
 	}
 	//noinspection GoUnhandledErrorResult
 	writer.Flush()
@@ -159,8 +158,8 @@ func printJobSuccessRate(aggregateJobInfo []*AggregateJobInfo) {
 			successRate = (100 * v.SuccessCount) / (v.SuccessCount + v.FailureCount)
 		}
 		//noinspection GoUnhandledErrorResult
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d/%d (%d%%)",
-			v.JobName, v.SuccessCount, v.SuccessCount+v.FailureCount, successRate))
+		fmt.Fprintf(writer, "%s\t%d/%d (%d%%)\n",
+			v.JobName, v.SuccessCount, v.SuccessCount+v.FailureCount, successRate)
 	}
 	//noinspection GoUnhandledErrorResult
 	writer.Flush()

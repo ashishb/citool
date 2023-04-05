@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ashishb/ci-analysis-tool/src/citool"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -153,7 +152,7 @@ func getInputFiles() []string {
 	}
 	// Get default files
 	if len(files) == 0 && dirExists(defaultDownloadDir) {
-		fileInfos, err := ioutil.ReadDir(defaultDownloadDir)
+		fileInfos, err := os.ReadDir(defaultDownloadDir)
 		if err != nil {
 			panic(err)
 		}

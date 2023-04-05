@@ -2,7 +2,7 @@ package citool
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -150,7 +150,7 @@ func constructDownloadURLForASpecificProject(params DownloadParams) *url.URL {
 func writeToFile(filename string, contents []byte) error {
 	// Create up to one parent if required
 	maybeCreateDirectory(filepath.Dir(filename))
-	return ioutil.WriteFile(filename, contents, 0644)
+	return os.WriteFile(filename, contents, 0644)
 }
 
 func maybeCreateDirectory(dirpath string) bool {
@@ -188,7 +188,7 @@ func getBody(url url.URL) ([]byte, error) {
 		if response.StatusCode != 200 {
 			panic(fmt.Sprintf("Failed to fetch %s, error: %s\n", urlString, response.Status))
 		}
-		bodyBytes, err3 := ioutil.ReadAll(response.Body)
+		bodyBytes, err3 := io.ReadAll(response.Body)
 		if err3 != nil {
 			fmt.Printf("Failed to fetch on %d try: %s\n", retryCount, urlString)
 			err = err3
