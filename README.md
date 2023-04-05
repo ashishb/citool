@@ -1,5 +1,9 @@
 # CI Analysis Tool [![Go Report Card](https://goreportcard.com/badge/github.com/ashishb/citool)](https://goreportcard.com/report/github.com/ashishb/citool) [![Test](https://github.com/ashishb/citool/actions/workflows/test.yml/badge.svg)](https://github.com/ashishb/citool/actions/workflows/test.yml)
 
+[![Lint YAML](https://github.com/ashishb/citool/actions/workflows/lint-yaml.yaml/badge.svg)](https://github.com/ashishb/citool/actions/workflows/lint-yaml.yaml)
+[![Lint Go](https://github.com/ashishb/citool/actions/workflows/lint-go.yaml/badge.svg)](https://github.com/ashishb/citool/actions/workflows/lint-go.yaml)
+[![Validate Go code formatting](https://github.com/ashishb/citool/actions/workflows/format-go.yaml/badge.svg)](https://github.com/ashishb/citool/actions/workflows/format-go.yaml)
+
 A tool to download and analyze Circle CI jobs data.
 
 ## Installations
