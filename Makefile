@@ -18,8 +18,7 @@ lint:
 	GO111MODULE=on go mod tidy
 	GO111MODULE=on go vet citool.go
 	GO111MODULE=on go vet src/citool/*
-	# TODO(ashishb): Enable this after fixing issues
-	# golangci-lint run
+	golangci-lint run
 test:
 	./test.sh
 
