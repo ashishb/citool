@@ -1,8 +1,8 @@
-# CI Analysis Tool [![Go Report Card](https://goreportcard.com/badge/github.com/ashishb/citool)](https://goreportcard.com/report/github.com/ashishb/citool) 
+# CI Analysis Tool [![Go Report Card](https://goreportcard.com/badge/github.com/ashishb/citool)](https://goreportcard.com/report/github.com/ashishb/citool) [![Test](https://github.com/ashishb/citool/actions/workflows/test.yml/badge.svg)](https://github.com/ashishb/citool/actions/workflows/test.yml)
 
 A tool to download and analyze Circle CI jobs data.
 
-### Installations
+## Installations
 
 `go get -u github.com/ashishb/citool`
 
@@ -11,49 +11,49 @@ A tool to download and analyze Circle CI jobs data.
 ```
 Usage of ./citool:
   -branch string
-    	Optional branch name to filter download/analysis on
+    Optional branch name to filter download/analysis on
   -circle-token string
-    	Circle CI access token. Download mode only.
+    Circle CI access token. Download mode only.
   -debug
-    	Set this to true to enable debug logging
+    Set this to true to enable debug logging
   -download-dir string
-    	Directory to download Circle CI data to (default "./circleci_data")
+    Directory to download Circle CI data to (default "./circleci_data")
   -input-files string
-    	Comma-separated list of files containing downloaded job results from CircleCI. Analyze mode only.
+    Comma-separated list of files containing downloaded job results from CircleCI. Analyze mode only.
   -jobname string
-    	Only consider job results for this jobname. Analyze mode only.
+    Only consider job results for this jobname. Analyze mode only.
   -jobstatus string
-    	Only consider job results with this completion status. Analyze mode only.
+    Only consider job results with this completion status. Analyze mode only.
   -limit int
-    	Circle CI build results download limit
+    Circle CI build results download limit
   -mode string
-    	Mode - "download" or "analyze"
+    Mode - "download" or "analyze"
   -offset int
-    	Circle CI build results download start offset
+    Circle CI build results download start offset
   -print-duration
-    	Print per-job average duration. Analyze mode only. (default true)
+    Print per-job average duration. Analyze mode only. (default true)
   -print-duration-graph
-    	Print per-job duration time series graph (yes, a graph). Analyze mode only. (default true)
+    Print per-job duration time series graph (yes, a graph). Analyze mode only. (default true)
   -print-success-graph
-    	Print per-job success graph (yes, a graph). Analyze mode only. (default true)
+    Print per-job success graph (yes, a graph). Analyze mode only. (default true)
   -print-success-rate
-    	Print per-job aggregated success rate. Analyze mode only. (default true)
+    Print per-job aggregated success rate. Analyze mode only. (default true)
   -reponame string
-    	Optional repository name to filter downloads/analysis on
+    Optional repository name to filter downloads/analysis on
   -username string
-    	Optional username to filter downloads/analysis on
+    Optional username to filter downloads/analysis on
   -vcsType string
-    	Name of the VCS system - See https://circleci.com/docs/api/#version-control-systems-vcs-type. Download mode only. (default "github")
+    Name of the VCS system - See https://circleci.com/docs/api/#version-control-systems-vcs-type. Download mode only. (default "github")
   -version
-    	Prints version of this tool
+    Prints version of this tool
 ```
 
-
 ## Examples
+
 Generate a Circle CI API token at [https://circleci.com/account/api](https://circleci.com/account/api). Use the token to **download the data**
 
 ```
-$ ./citool --mode download --circle-token ${TOKEN} --limit 100 --offset 0 --username ashishb --reponame androidtool --download-dir androidtool_data
+./citool --mode download --circle-token ${TOKEN} --limit 100 --offset 0 --username ashishb --reponame androidtool --download-dir androidtool_data
 ```
 
 Now, analyze
@@ -132,6 +132,6 @@ $ ./citool --version
 ### Development
 
 1. `make citool` - to build
-2. `make test` - to test
-3. `make lint` - to vet and lint
-4. `make format` - to format using gofmt
+1. `make test` - to test
+1. `make lint` - to vet and lint
+1. `make format` - to format using gofmt
