@@ -1,4 +1,4 @@
-# CI Analysis Tool [![Go Report Card](https://goreportcard.com/badge/github.com/ashishb/citool)](https://goreportcard.com/report/github.com/ashishb/citool) <a href="https://github.com/ashishb/citool/actions>![Build](https://github.com/ashishb/citool/workflows/Go/badge.svg)</a>
+# CI Analysis Tool [![Go Report Card](https://goreportcard.com/badge/github.com/ashishb/citool)](https://goreportcard.com/report/github.com/ashishb/citool) 
 
 A tool to download and analyze Circle CI jobs data.
 
